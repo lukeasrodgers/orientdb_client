@@ -2,8 +2,6 @@ require 'typhoeus'
 
 module OrientdbClient
   module HttpAdapters
-    SESSION_COOKIE_NAME = 'OSESSIONID'
-
     class TyphoeusAdapter
 
       attr_accessor :username, :password
@@ -61,5 +59,5 @@ module OrientdbClient
       end
 
     end
-  end
+end
 end

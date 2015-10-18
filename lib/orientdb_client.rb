@@ -1,6 +1,7 @@
 require "orientdb_client/version"
 require "orientdb_client/errors"
-require "orientdb_client/http_adapters/typhoeus"
+require "orientdb_client/http_adapters"
+require "orientdb_client/http_adapters/typhoeus_adapter"
 
 require 'oj'
 require 'cgi'

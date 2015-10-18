@@ -1,6 +1,12 @@
 # OrientdbClient
 
 Ruby client for Orientdb.
+Inspired by https://github.com/veny/orientdb4r
+
+Goals:
+
+* speed (as much as possible with ruby)
+* fine-grained handling of Orientdb errors, via rich set of ruby exceptions
 
 ## Installation
 
@@ -18,7 +24,23 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+# basic usage
+my_client = OrientdbClient.client
+# connect to default Orientdb database
+my_client.connect(username: 'root', password: 'YOURPASSWORD', db: 'GratefulDeadConcerts')
+
+# create database
+my_client.create_database('new_db', 'plocal', 'graph')
+```
+
+## Development
+
+Launch pry session with the gem: `rake console`, in pry use `reload!` to reload all gem files.
+
+Run tests: `rake db:test:create` (consult `test.rb` for information on customizing auth credentials via env variables).
+
+Turn on/off rudimentary debug mode with `client.debug = true/false`.
 
 ## Contributing
 

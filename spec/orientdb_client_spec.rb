@@ -193,8 +193,14 @@ RSpec.describe OrientdbClient do
         end
 
         context 'with invalid query' do
-          it 'returns result' do
+          it 'raises ClientError' do
             expect { client.query('select * crumb') }.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)
+          end
+        end
+        
+        context 'with non-idempotent query' do
+          it 'raises ClientError' do
+            expect { client.query('create class User') }.to raise_exception(OrientdbClient::ClientError, /OCommandExecutionException/)
           end
         end
       end
@@ -287,36 +293,99 @@ RSpec.describe OrientdbClient do
     end
 
     describe '#create_class' do
+      let(:class_name) { 'Member' }
+
+      context 'when connected' do
+        before(:each) do
+          client.connect(username: username, password: password, db: db)
+
+          if (client.has_class?(class_name))
+            client.drop_class(class_name)
+          end
+        end
+
+        it 'creates the class' do
+          expect(client.create_class(class_name)).to be
+          expect(client.get_class(class_name)['name']).to eq(class_name)
+        end
+
+        it 'allows creation of classes that extend Vertex' do
+          client.create_class(class_name, extends: 'V')
+          expect(client.get_class(class_name)['superClass']).to eq('V')
+        end
+
+        it 'allows creation of abstract classes that extend Edge' do
+          client.create_class(class_name, extends: 'E', abstract: true)
+          expect(client.get_class(class_name)['superClass']).to eq('E')
+          expect(client.get_class(class_name)['abstract']).to be true
+        end
+
+        it 'raises exception on creation of classes that extend nothing' do
+          expect do
+            client.create_class(class_name, extends: 'VJk')
+          end.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)
+        end
+
+        context 'with existing class of that name' do
+          it 'raises a ClientError' do
+            client.create_class(class_name)
+            expect do
+              client.create_class(class_name)
+            end.to raise_exception(OrientdbClient::ClientError, /OSchemaException/)
+          end
+        end
+      end
+
+
+      context 'when not connected' do
+        it 'raises UnauthorizedError' do
+          expect do
+            client.create_class(class_name)
+          end.to raise_exception(OrientdbClient::UnauthorizedError)
+        end
+      end
+    end
+
+    describe '#drop_class' do
+      let(:class_name) { 'Member' }
+
       context 'when connected' do
         before(:each) do
           client.connect(username: username, password: password, db: db)
         end
 
-        context 'with a database' do
+        context 'with class' do
           before(:each) do
-            unless client.database_exists?(temp_db_name)
-              client.create_database(temp_db_name, 'plocal', 'document', username: valid_username, password: valid_password)
+            unless client.has_class?(class_name)
+              client.create_class(class_name)
             end
           end
 
-          it 'creates the class' do
-            expect(client.create_class(temp_db_name, 'Member')).to eq(9)
+          it 'deletes the class' do
+            client.drop_class(class_name)
+            expect(client.has_class?(class_name)).to be false
+          end
+        end
+
+        context 'without class' do
+          before(:each) do
+            if client.has_class?(class_name)
+              client.drop_class(class_name)
+            end
           end
 
-          context 'with existing class of that name' do
-            it 'raises a ClientError' do
-              client.create_class(temp_db_name, 'Member')
-              expect { client.create_class(temp_db_name, 'Member') }.to raise_exception(OrientdbClient::ClientError, /IllegalArgumentException/)
-            end
+          it 'returns nil' do
+            expect(client.drop_class(class_name)).to be_nil
           end
         end
       end
 
-      context 'when not connected' do
-        it 'lists databases anyways' do
-          expect { client.list_databases }.not_to raise_exception
+      context 'without connection' do
+        it 'raises UnauthorizedError' do
+          expect { client.drop_class(class_name) }.to raise_exception(OrientdbClient::UnauthorizedError)
         end
       end
+
     end
   end
 end

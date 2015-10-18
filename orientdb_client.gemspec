@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Luke Rodgers"]
   spec.email         = ["lukeasrodgers@gmail.com"]
   spec.summary       = %q{Orientdb ruby client}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.description   = %q{Orientdb ruby client aiming to be simple, fast, and provide good integration with Orientdb error messages.}
   spec.homepage      = ""
   spec.license       = "MIT"
 
@@ -18,6 +18,11 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency "bundler", "~> 1.6"
+  spec.add_dependency "typhoeus", "~> 0.6"
+  spec.add_dependency "oj", "~> 2.0"
+
   spec.add_development_dependency "rake"
+  spec.add_development_dependency "pry"
+  spec.add_development_dependency "rspec", "~> 3.3"
+  spec.add_development_dependency "rspec-mocks", "~> 3.3"
 end

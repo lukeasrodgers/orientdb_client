@@ -193,7 +193,7 @@ RSpec.describe OrientdbClient do
         end
 
         context 'with invalid query' do
-          it 'returns result' do
+          it 'raises ClientError' do
             expect { client.query('select * crumb') }.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)
           end
         end

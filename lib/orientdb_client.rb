@@ -177,7 +177,7 @@ module OrientdbClient
     end
 
     def query(sql, options)
-      parse_response(query_unparsed(sql, options))
+      parse_response(query_unparsed(sql, options))['result']
     end
 
     def query_unparsed(sql, options)

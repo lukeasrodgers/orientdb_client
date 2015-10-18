@@ -57,8 +57,20 @@ module OrientdbClient
       @node.delete_database(name, options)
     end
 
-    def create_class(database, name)
-      @node.create_class(database, name)
+    def create_class(name, options = {})
+      @node.create_class(name, options)
+    end
+
+    def get_class(name)
+      @node.get_class(name)
+    end
+
+    def has_class?(name)
+      @node.has_class?(name)
+    end
+
+    def drop_class(name)
+      @node.drop_class(name)
     end
 
     def get_database(name)
@@ -83,10 +95,6 @@ module OrientdbClient
 
     def command(sql)
       @node.command(sql)
-    end
-
-    def get_class(name)
-      @node.get_class(name)
     end
 
     def connected?
@@ -156,9 +164,16 @@ module OrientdbClient
       parse_response(r)['databases']
     end
 
-    def create_class(database, name)
-      r = request(:post, "class/#{database}/#{name}")
-      parse_response(r)
+    def create_class(name, options)
+      sql = "CREATE CLASS #{name}"
+      sql << " EXTENDS #{options[:extends]}" if options.key?(:extends)
+      sql << " CLUSTER #{options[:cluster]}" if options.key?(:cluster)
+      sql << ' ABSTRACT' if options.key?(:abstract)
+      command(sql)
+    end
+
+    def drop_class(name)
+      command("DROP CLASS #{name}")
     end
 
     def query(sql, options)
@@ -178,6 +193,14 @@ module OrientdbClient
     def get_class(name)
       r = request(:get, "class/#{@database}/#{name}")
       parse_response(r)
+    end
+
+    def has_class?(name)
+      if get_class(name)
+        return true
+      end
+    rescue NotFoundError
+      return false
     end
 
     def connected?
@@ -244,6 +267,8 @@ module OrientdbClient
       when /OConfigurationException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OCommandExecutionException/
+        raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
+      when /OSchemaException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       end
     end

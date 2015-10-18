@@ -197,6 +197,12 @@ RSpec.describe OrientdbClient do
             expect { client.query('select * crumb') }.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)
           end
         end
+        
+        context 'with non-idempotent query' do
+          it 'raises ClientError' do
+            expect { client.query('create class User') }.to raise_exception(OrientdbClient::ClientError, /OCommandExecutionException/)
+          end
+        end
       end
 
       context 'when not connected' do

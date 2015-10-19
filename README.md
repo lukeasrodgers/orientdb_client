@@ -48,6 +48,30 @@ require 'orientdb_client/http_adapters/curb_adapter'
 client = OrientdbClient.cient(adapter: 'CurbAdapter')
 ```
 
+## HTTP Adapters
+
+OrientdbClient currently supports Typhoeus and Curb HTTP adapters.
+
+Benchmarks:
+
+```ruby
+#tc is typhoeus client, cc is curb client
+
+require 'benchmark'
+Benchmark.bmbm do |x|
+  x.report('typhoeus') { 100.times { tc.query('select * from V') } }
+  x.report('curb') { 100.times { cc.query('select * from V') } }
+end
+Rehearsal --------------------------------------------
+typhoeus   0.100000   0.010000   0.110000 (  0.392666)
+curb       0.060000   0.000000   0.060000 (  0.347496)
+----------------------------------- total: 0.170000sec
+
+               user     system      total        real
+typhoeus   0.100000   0.010000   0.110000 (  0.387320)
+curb       0.060000   0.010000   0.070000 (  0.331764)
+```
+
 ## Development
 
 Launch pry session with the gem: `rake console`, in pry use `reload!` to reload all gem files.

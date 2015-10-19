@@ -5,10 +5,10 @@ module OrientdbClient
   module HttpAdapters
     class CurbAdapter < Base
 
-      # def initialize
-        # super
-        # @curl = Curl::Easy.new
-      # end
+      def initialize
+        super
+        @curl = Curl::Easy.new
+      end
 
       def request(method, url, options = {})
         req = prepare_request(method, url, options)
@@ -21,12 +21,11 @@ module OrientdbClient
       def prepare_request(method, url, options)
         username = options[:username] || @username
         password = options[:password] || @password
-        r = Curl::Easy.new(url) do |curl|
-          curl.http_auth_types = :basic
-          curl.username = username
-          curl.password = password
-        end
-        r
+        @curl.url = url
+        @curl.http_auth_types = :basic
+        @curl.username = username
+        @curl.password = password
+        @curl
       end
 
       def run_request(request, method)

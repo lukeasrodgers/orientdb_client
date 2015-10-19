@@ -29,9 +29,23 @@ Or install it yourself as:
 my_client = OrientdbClient.client
 # connect to default Orientdb database
 my_client.connect(username: 'root', password: 'YOURPASSWORD', db: 'GratefulDeadConcerts')
+my_client.query('select * from V')
 
 # create database
 my_client.create_database('new_db', 'plocal', 'graph')
+
+# use a different logger
+class MyLogger
+  def info(message)
+    puts "my message: #{message}"
+  end
+end
+Orientdb::logger = MyLogger.new
+
+# use a different HttpAdapter
+require 'orientdb_client'
+require 'orientdb_client/http_adapters/curb_adapter'
+client = OrientdbClient.cient(adapter: 'CurbAdapter')
 ```
 
 ## Development
@@ -39,6 +53,8 @@ my_client.create_database('new_db', 'plocal', 'graph')
 Launch pry session with the gem: `rake console`, in pry use `reload!` to reload all gem files.
 
 Run tests: `rake db:test:create` (consult `test.rb` for information on customizing auth credentials via env variables).
+
+NB: you will likely have to specify your Orientdb test user/password via environment variables. See `lib/orientdb_client/test.rb`.
 
 Turn on/off rudimentary debug mode with `client.debug = true/false`.
 

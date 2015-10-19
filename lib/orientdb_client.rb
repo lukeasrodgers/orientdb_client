@@ -1,19 +1,24 @@
 require "orientdb_client/version"
 require "orientdb_client/errors"
-require "orientdb_client/http_adapters/typhoeus"
+require "orientdb_client/http_adapters"
+require "orientdb_client/http_adapters/typhoeus_adapter"
 
 require 'oj'
 require 'cgi'
 
 module OrientdbClient
-  def self.client(options = {})
-    Client.new(options)
+  class << self
+    def client(options = {})
+      Client.new(options)
+    end
+
+    attr_accessor :logger
   end
 
   DATABASE_TYPES = ['document', 'graph']
 
   class Client
-    attr_accessor :logger
+    attr_reader :http_client
 
     def initialize(options)
       options = {
@@ -22,9 +27,13 @@ module OrientdbClient
       }.merge(options)
       @host = options[:host]
       @port = options[:port]
-      @http_client = HttpAdapters::TyphoeusAdapter.new
-      @logger = Logger.new(STDOUT)
-      @node = Node.new(host: @host, port: @port, http_client: @http_client, logger: @logger)
+      adapter_klass = if options[:adapter]
+                        HttpAdapters.const_get(options[:adapter])
+                      else
+                        HttpAdapters::TyphoeusAdapter
+                      end
+      @http_client = adapter_klass.new
+      @node = Node.new(host: @host, port: @port, http_client: @http_client)
       @connected = false
       self
     end
@@ -108,10 +117,6 @@ module OrientdbClient
     def debug=(val)
       @node.debug = val
     end
-
-    def log_level=(level)
-      @logger.level = level
-    end
   end
 
   class Node
@@ -119,11 +124,10 @@ module OrientdbClient
     attr_reader :database
     attr_writer :debug
 
-    def initialize(host:, port:, http_client: http_client, logger:)
+    def initialize(host:, port:, http_client: http_client)
       @host = host
       @port = port
       @http_client = http_client
-      @logger = logger
       @connected = false
       @database = nil
       @debug = false
@@ -215,7 +219,7 @@ module OrientdbClient
       response = @http_client.request(method, url, options)
       time = Time.now - t1
       r = handle_response(response)
-      @logger.info("request (#{time}), #{response.code}: #{method} #{url}")
+      OrientdbClient::logger.info("request (#{time}), #{response.response_code}: #{method} #{url}")
       r
     end
 
@@ -225,21 +229,21 @@ module OrientdbClient
 
     def handle_response(response)
       return response if @debug
-      case response.code
+      case response.response_code
       when 0
         raise ConnectionError.new("No server at #{@host}:#{@port}", 0, nil)
       when 200, 201, 204
         return response
       when 401
-        raise UnauthorizedError.new('Unauthorized', response.code, response.body)
+        raise UnauthorizedError.new('Unauthorized', response.response_code, response.body)
       when 404
-        raise NotFoundError.new('Not found', response.code, response.body)
+        raise NotFoundError.new('Not found', response.response_code, response.body)
       when 409
-        raise ConflictError.new('Conflict', response.code, response.body)
+        raise ConflictError.new('Conflict', response.response_code, response.body)
       when 500
         translate_500(response)
       else
-        raise ServerError.new("Unexpected HTTP status code: #{response.code}", response.code, response.body)
+        raise ServerError.new("Unexpected HTTP status code: #{response.response_code}", response.response_code, response.body)
       end
     end
 
@@ -252,7 +256,7 @@ module OrientdbClient
     end
 
     def translate_500(response)
-      code = response.code
+      code = response.response_code
       body = response.body
       odb_error_class, odb_error_message = extract_odb_error(response)
       case odb_error_class
@@ -278,8 +282,10 @@ module OrientdbClient
       matches = json['errors'].first['content'].match(/\A([^:]+):\s?(.+)/m)
       [matches[1], matches[2]]
     rescue
-      raise OrientdbError.new("Could not parse Orientdb server error: #{json}", response.code, response.body)
+      raise OrientdbError.new("Could not parse Orientdb server error: #{json}", response.response_code, response.body)
     end
 
   end
 end
+
+OrientdbClient::logger = Logger.new(STDOUT)

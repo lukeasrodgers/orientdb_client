@@ -5,3 +5,5 @@ module OrientdbClient
     OrientdbClient::Test::Password = ENV['ORIENTDB_TEST_PASSWORD'] || 'test'
   end
 end
+
+require 'orientdb_client/http_adapters/curb_adapter'

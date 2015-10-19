@@ -54,8 +54,6 @@ Launch pry session with the gem: `rake console`, in pry use `reload!` to reload 
 
 Run tests: `rake db:test:create` (consult `test.rb` for information on customizing auth credentials via env variables).
 
-NB: you will likely have to specify your Orientdb test user/password via environment variables. See `lib/orientdb_client/test.rb`.
-
 Turn on/off rudimentary debug mode with `client.debug = true/false`.
 
 ## Contributing

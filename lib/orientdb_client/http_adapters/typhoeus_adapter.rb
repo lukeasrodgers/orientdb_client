@@ -2,25 +2,11 @@ require 'typhoeus'
 
 module OrientdbClient
   module HttpAdapters
-    class TyphoeusAdapter
-
-      attr_accessor :username, :password
-
-      def initialize
-        @username = nil
-        @password = nil
-        @session_id = nil
-      end
+    class TyphoeusAdapter < Base
 
       def request(method, url, options = {})
         req = prepare_request(method, url, options)
         run_request(req)
-      end
-
-      def reset_credentials
-        @username = nil
-        @password = nil
-        @session_id = nil
       end
 
       private
@@ -59,5 +45,5 @@ module OrientdbClient
       end
 
     end
-end
+  end
 end

@@ -4,7 +4,7 @@ RSpec.describe OrientdbClient do
   describe 'integration specs', type: :integration do
     let(:client) do
       c = OrientdbClient.client
-      c.log_level = Logger::ERROR
+      OrientdbClient::logger.level = Logger::ERROR
       c
     end
     let(:username) { OrientdbClient::Test::Username }
@@ -386,6 +386,15 @@ RSpec.describe OrientdbClient do
         end
       end
 
+    end
+  end
+
+  describe 'initialization' do
+    context 'with non-default adapter' do
+      it 'initializes specified adapter' do
+        client = OrientdbClient.client(adapter: 'CurbAdapter')
+        expect(client.http_client).to be_an_instance_of(OrientdbClient::HttpAdapters::CurbAdapter)
+      end
     end
   end
 end

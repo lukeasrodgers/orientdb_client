@@ -20,6 +20,9 @@
 require 'orientdb_client'
 require 'orientdb_client/test'
 
+require 'webmock/rspec'
+WebMock.disable_net_connect!(:allow_localhost => true)
+
 $db = ENV['ORIENTDB_TEST_DATABASENAME'] || OrientdbClient::Test::DatabaseName
 
 RSpec.configure do |config|

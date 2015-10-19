@@ -1,6 +1,6 @@
 # OrientdbClient
 
-Ruby client for Orientdb.
+Ruby client for Orientdb. Probably not quite ready for production yet.
 Inspired by https://github.com/veny/orientdb4r
 
 Goals:

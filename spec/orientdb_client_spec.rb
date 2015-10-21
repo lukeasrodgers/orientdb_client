@@ -385,7 +385,38 @@ RSpec.describe OrientdbClient do
           expect { client.drop_class(class_name) }.to raise_exception(OrientdbClient::UnauthorizedError)
         end
       end
+    end
 
+    describe '#get_database' do
+      context 'when connected' do
+        before(:each) do
+          client.connect(username: username, password: password, db: db)
+        end
+
+        context 'with db' do
+          it 'returns the database' do
+            expect(client.get_database(db)).to be
+          end
+        end
+
+        context 'without db' do
+          it 'raises NotFoundError' do
+            expect { client.get_database('foo') }.to raise_exception(OrientdbClient::NotFoundError, /not authorized/)
+          end
+        end
+      end
+    end
+
+    context 'without connection' do
+      it 'raises UnauthorizedError' do
+        expect { client.get_database(db) }.to raise_exception(OrientdbClient::UnauthorizedError)
+      end
+
+      context 'with option auth data' do
+        it 'returns the database' do
+          expect(client.get_database(db, {username: username, password: password})).to be
+        end
+      end
     end
   end
 

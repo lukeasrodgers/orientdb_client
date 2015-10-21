@@ -82,8 +82,8 @@ module OrientdbClient
       @node.drop_class(name)
     end
 
-    def get_database(name)
-      @node.get_database(name)
+    def get_database(name, options = {})
+      @node.get_database(name, options)
     end
 
     def database_exists?(name)
@@ -156,11 +156,16 @@ module OrientdbClient
       parse_response(r)
     end
 
-    def get_database(name)
-      r = request(:get, "database/#{name}")
-      parse_response(r)
-    rescue UnauthorizedError
-      raise NotFoundError.new("Database #{name} not found", 401)
+    def get_database(name, options)
+      r = request(:get, "database/#{name}", options)
+      r = parse_response(r)
+    rescue UnauthorizedError => e
+      # Attempt to get not-found db, when connected, will return 401 error.
+      if connected?
+        raise NotFoundError.new("Database #{name} not found, or you are not authorized to access it.", 401)
+      else
+        raise e
+      end
     end
 
     def list_databases

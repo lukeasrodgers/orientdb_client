@@ -1,25 +1,25 @@
 require 'spec_helper'
 
 RSpec.describe OrientdbClient do
+  let(:client) do
+    c = OrientdbClient.client
+    OrientdbClient::logger.level = Logger::ERROR
+    c
+  end
+  let(:username) { OrientdbClient::Test::Username }
+  let(:valid_username) { OrientdbClient::Test::Username }
+  let(:password) { OrientdbClient::Test::Password }
+  let(:valid_password) { OrientdbClient::Test::Password }
+  let(:db) { OrientdbClient::Test::DatabaseName }
+  let(:temp_db_name) { "#{OrientdbClient::Test::DatabaseName}_temp" }
+
+  after(:each) do
+    if client.database_exists?(temp_db_name)
+      client.delete_database(temp_db_name, username: valid_username, password: valid_password)
+    end
+  end
+
   describe 'integration specs', type: :integration do
-    let(:client) do
-      c = OrientdbClient.client
-      OrientdbClient::logger.level = Logger::ERROR
-      c
-    end
-    let(:username) { OrientdbClient::Test::Username }
-    let(:valid_username) { OrientdbClient::Test::Username }
-    let(:password) { OrientdbClient::Test::Password }
-    let(:valid_password) { OrientdbClient::Test::Password }
-    let(:db) { OrientdbClient::Test::DatabaseName }
-    let(:temp_db_name) { "#{OrientdbClient::Test::DatabaseName}_temp" }
-
-    after(:each) do
-      if client.database_exists?(temp_db_name)
-        client.delete_database(temp_db_name, username: valid_username, password: valid_password)
-      end
-    end
-
     describe '#connect' do
       subject { client.connect(username: username, password: password, db: db) }
 

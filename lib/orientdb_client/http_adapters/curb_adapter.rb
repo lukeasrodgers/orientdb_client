@@ -1,5 +1,4 @@
 require 'curb'
-require 'byebug'
 
 module OrientdbClient
   module HttpAdapters

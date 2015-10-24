@@ -17,6 +17,7 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
+require 'byebug'
 require 'orientdb_client'
 require 'orientdb_client/test'
 

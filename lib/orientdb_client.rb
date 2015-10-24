@@ -244,15 +244,16 @@ module OrientdbClient
       when 404
         raise NotFoundError.new('Not found', response.response_code, response.body)
       when 409
-        raise ConflictError.new('Conflict', response.response_code, response.body)
+        translate_error(response)
       when 500
-        translate_500(response)
+        translate_error(response)
       else
         raise ServerError.new("Unexpected HTTP status code: #{response.response_code}", response.response_code, response.body)
       end
     end
 
     def parse_response(response)
+      return nil if response.body.empty?
       @debug ? response : Oj.load(response.body)
     end
 
@@ -260,7 +261,7 @@ module OrientdbClient
       options[:limit] ? "/#{options[:limit]}" : ''
     end
 
-    def translate_500(response)
+    def translate_error(response)
       code = response.response_code
       body = response.body
       odb_error_class, odb_error_message = extract_odb_error(response)
@@ -279,6 +280,8 @@ module OrientdbClient
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OSchemaException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
+      when /OConcurrentModification/
+        raise MVCCError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
       end
     end
 
@@ -286,8 +289,12 @@ module OrientdbClient
       json = Oj.load(response.body)
       matches = json['errors'].first['content'].match(/\A([^:]+):\s?(.+)/m)
       [matches[1], matches[2]]
-    rescue
-      raise OrientdbError.new("Could not parse Orientdb server error: #{json}", response.response_code, response.body)
+    rescue => e
+      if (response.body.match(/Database.*already exists/))
+        raise ConflictError.new(e.message, response.response_code, response.body)
+      else
+        raise OrientdbError.new("Could not parse Orientdb server error: #{json}", response.response_code, response.body)
+      end
     end
 
   end

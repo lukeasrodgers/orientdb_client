@@ -1,25 +1,25 @@
 require 'spec_helper'
 
 RSpec.describe OrientdbClient do
+  let(:client) do
+    c = OrientdbClient.client
+    OrientdbClient::logger.level = Logger::ERROR
+    c
+  end
+  let(:username) { OrientdbClient::Test::Username }
+  let(:valid_username) { OrientdbClient::Test::Username }
+  let(:password) { OrientdbClient::Test::Password }
+  let(:valid_password) { OrientdbClient::Test::Password }
+  let(:db) { OrientdbClient::Test::DatabaseName }
+  let(:temp_db_name) { "#{OrientdbClient::Test::DatabaseName}_temp" }
+
+  after(:each) do
+    if client.database_exists?(temp_db_name)
+      client.delete_database(temp_db_name, username: valid_username, password: valid_password)
+    end
+  end
+
   describe 'integration specs', type: :integration do
-    let(:client) do
-      c = OrientdbClient.client
-      OrientdbClient::logger.level = Logger::ERROR
-      c
-    end
-    let(:username) { OrientdbClient::Test::Username }
-    let(:valid_username) { OrientdbClient::Test::Username }
-    let(:password) { OrientdbClient::Test::Password }
-    let(:valid_password) { OrientdbClient::Test::Password }
-    let(:db) { OrientdbClient::Test::DatabaseName }
-    let(:temp_db_name) { "#{OrientdbClient::Test::DatabaseName}_temp" }
-
-    after(:each) do
-      if client.database_exists?(temp_db_name)
-        client.delete_database(temp_db_name, username: valid_username, password: valid_password)
-      end
-    end
-
     describe '#connect' do
       subject { client.connect(username: username, password: password, db: db) }
 
@@ -417,6 +417,59 @@ RSpec.describe OrientdbClient do
           expect(client.get_database(db, {username: username, password: password})).to be
         end
       end
+    end
+  end
+
+  describe 'mvcc handling', type: :integration do
+    let(:client) do
+      c = OrientdbClient.client
+      OrientdbClient::logger.level = Logger::ERROR
+      c
+    end
+    before do
+      client.connect(username: username, password: password, db: db)
+      if client.has_class?('Person')
+        client.command('delete vertex Person')
+        client.drop_class('Person')
+      end
+      if client.has_class?('Friend')
+        client.drop_class('Friend')
+      end
+    end
+
+    after do
+      client.command('delete vertex Person')
+      client.drop_class('Person')
+      client.drop_class('Friend')
+    end
+
+    it 'handles mvcc conflicts' do
+      client.create_class('Person', extends: 'V')
+      client.create_class('Friend', extends: 'E')
+      client.command('create property Friend.out link Person')
+      client.command('create property Friend.in link Person')
+      client.command('create index FollowIdx on Friend (out,in) unique')
+      client.command('create property Person.age integer')
+      jim = client.command('insert into Person CONTENT ' + Oj.dump({'name' => 'jim'}))
+      bob = client.command('insert into Person CONTENT ' + Oj.dump({'name' => 'bob'}))
+      jim_rid = jim['result'][0]['@rid']
+      bob_rid = bob['result'][0]['@rid']
+      thrs = []
+      expect do 
+        thrs << Thread.new do
+          100.times do
+            client.command("create edge Friend from #{jim_rid} to #{bob_rid}")
+            client.command("delete edge Friend from #{jim_rid} to #{bob_rid}")
+          end
+        end
+        thrs << Thread.new do
+          100.times do |i|
+            client.command("update #{jim_rid} set age=#{i}")
+            client.command("update #{bob_rid} set age=#{i}")
+          end
+        end
+        thrs.each { |t| t.join }
+      end.to raise_exception(OrientdbClient::MVCCError, /OConcurrentModificationException/)
     end
   end
 

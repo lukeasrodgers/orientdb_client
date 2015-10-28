@@ -14,7 +14,8 @@ module OrientdbClient
       def prepare_request(method, url, options)
         options = {
           userpwd: authentication_string(options),
-          method: method
+          method: method,
+          headers: {'Content-Type'=> "application/json"}
         }.merge(options)
         Typhoeus::Request.new(url, options)
       end

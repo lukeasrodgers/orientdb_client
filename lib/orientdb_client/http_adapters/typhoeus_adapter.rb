@@ -25,6 +25,10 @@ module OrientdbClient
         if cookies = response.headers['Set-Cookie']
           @session_id = extract_session_id(cookies)
         end
+        # TODO hacky, replace with response adpater object probably
+        def response.content_type
+          headers['Content-Type']
+        end
         response
       end
 

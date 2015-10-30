@@ -14,6 +14,9 @@ RSpec.describe OrientdbClient do
   let(:temp_db_name) { "#{OrientdbClient::Test::DatabaseName}_temp" }
 
   after(:each) do
+    if client.connected?
+      client.disconnect
+    end
     if client.database_exists?(temp_db_name)
       client.delete_database(temp_db_name, username: valid_username, password: valid_password)
     end
@@ -252,7 +255,7 @@ RSpec.describe OrientdbClient do
           end
         end
 
-        context 'with invalid query' do
+        context 'with class that does not exist' do
           it 'raises NotFoundError' do
             expect { client.get_class('foobar') }.to raise_exception(OrientdbClient::NotFoundError)
           end
@@ -420,6 +423,8 @@ RSpec.describe OrientdbClient do
     end
   end
 
+  # These specs will sometimes fail, not too much we can do about that, depends
+  # on timing/threading in ruby and odb
   describe 'mvcc handling', type: :integration do
     let(:client) do
       c = OrientdbClient.client

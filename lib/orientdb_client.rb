@@ -202,6 +202,8 @@ module OrientdbClient
     def get_class(name)
       r = request(:get, "class/#{@database}/#{name}")
       parse_response(r)
+    rescue IllegalArgumentException
+      raise NotFoundError
     end
 
     def has_class?(name)
@@ -262,9 +264,13 @@ module OrientdbClient
     end
 
     def translate_error(response)
+      odb_error_class, odb_error_message = if response.content_type.start_with?('application/json')
+         extract_odb_error_from_json(response)
+      else
+        extract_odb_error_from_text(response)
+      end
       code = response.response_code
       body = response.body
-      odb_error_class, odb_error_message = extract_odb_error(response)
       case odb_error_class
       when /OCommandSQLParsingException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
@@ -273,7 +279,7 @@ module OrientdbClient
       when /OCommandExecutorNotFoundException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /IllegalArgumentException/
-        raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
+        raise IllegalArgumentException.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OConfigurationException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OCommandExecutionException/
@@ -282,18 +288,41 @@ module OrientdbClient
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OConcurrentModification/
         raise MVCCError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+      when /IllegalStateException/
+        raise ServerError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+      when /ODatabaseException/
+        if odb_error_message.match(/already exists/)
+          klass = ConflictError
+        else
+          klass = ServerError
+        end
+        raise klass.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
       end
     end
 
-    def extract_odb_error(response)
-      json = Oj.load(response.body)
+    def extract_odb_error_from_json(response)
+      body = response.body
+      json = Oj.load(body)
+      # odb > 2.1 (?) errors are in JSON format
       matches = json['errors'].first['content'].match(/\A([^:]+):\s?(.+)/m)
       [matches[1], matches[2]]
     rescue => e
       if (response.body.match(/Database.*already exists/))
         raise ConflictError.new(e.message, response.response_code, response.body)
       else
-        raise OrientdbError.new("Could not parse Orientdb server error: #{json}", response.response_code, response.body)
+        raise OrientdbError.new("Could not parse Orientdb server error", response.response_code, response.body)
+      end
+    end
+
+    def extract_odb_error_from_text(response)
+      body = response.body
+      matches = body.match(/\A([^:]+):\s(.*)$/)
+      [matches[1], matches[2]]
+    rescue => e
+      if (response.body.match(/Database.*already exists/))
+        raise ConflictError.new(e.message, response.response_code, response.body)
+      else
+        raise OrientdbError.new("Could not parse Orientdb server error", response.response_code, response.body)
       end
     end
 

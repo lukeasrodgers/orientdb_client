@@ -15,6 +15,8 @@ module OrientdbClient
 
   class ClientError < OrientdbError; end
   class UnauthorizedError < ClientError; end
+  class IllegalArgumentException < ClientError; end
+
   class ConflictError < ClientError; end
   class MVCCError < ConflictError; end
 

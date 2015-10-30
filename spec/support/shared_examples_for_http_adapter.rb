@@ -44,6 +44,13 @@ RSpec.shared_examples 'http adapter' do
         r = adapter.request(:get, url)
         expect(r.body).to eq({a: 1}.to_json)
       end
+
+      it 'returns a response that responds to `content_type`' do
+        stub_request(:get, url).
+         to_return(:status => 200, :body => {a: 1}.to_json, :headers => {'Content-Type' => 'application/json; charset=utf8'})
+        r = adapter.request(:get, url)
+        expect(r.content_type).to eq('application/json; charset=utf8')
+      end
     end
 
     describe 'POST' do

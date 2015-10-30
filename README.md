@@ -8,6 +8,11 @@ Goals:
 * speed (as much as possible with ruby)
 * fine-grained handling of Orientdb errors, via rich set of ruby exceptions
 
+Tested on:
+* 2.1.5
+* 2.0.6 - spec may fail due to Orientdb bug with deleting database (https://github.com/orientechnologies/orientdb/issues/3746)
+* 2.0.4
+
 ## Installation
 
 Add this line to your application's Gemfile:

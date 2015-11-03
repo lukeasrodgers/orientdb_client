@@ -295,6 +295,168 @@ RSpec.describe OrientdbClient do
       end
     end
 
+    describe '#create_property' do
+      let(:class_name) { 'Member' }
+
+      context 'when connected' do
+        before(:each) do
+          client.connect(username: username, password: password, db: db)
+        end
+
+        context 'when class exists' do
+          before do
+            if (client.has_class?(class_name))
+              client.drop_class(class_name)
+            end
+            client.create_class(class_name)
+          end
+
+          after do
+            if (client.has_class?(class_name))
+              client.drop_class(class_name)
+            end
+          end
+
+          it 'can add string property to the class' do
+            client.create_property(class_name, 'member_name', 'string')
+            expect(client.get_class(class_name)['properties']).to include(hash_including({
+              'name' => 'member_name',
+              'type' => 'STRING',
+              'mandatory' => false,
+              'readonly' => false,
+              'notNull' => false,
+              'min' => nil,
+              'max' => nil,
+              'regexp' => nil,
+              'collate' => 'default'
+            }))
+          end
+
+          it 'accepts options for the new property' do
+            client.create_property(class_name, 'member_name', 'string', notnull: true, mandatory: true, min: 4, max: 10)
+            expect(client.get_class(class_name)['properties']).to include(hash_including({
+              'name' => 'member_name',
+              'type' => 'STRING',
+              'mandatory' => true,
+              'readonly' => false,
+              'notNull' => true,
+              'min' => '4',
+              'max' => '10',
+              'regexp' => nil,
+              'collate' => 'default'
+            }))
+          end
+
+          context 'when property already exists' do
+            before do
+              client.create_property(class_name, 'member_name', 'string')
+            end
+
+            it 'raises exception' do
+              expect do
+                client.create_property(class_name, 'member_name', 'string')
+              end.to raise_exception(OrientdbClient::CommandExecutionException, /OCommandExecutionException/)
+            end
+          end
+        end
+
+        context 'when class does not exist' do
+          it 'raises exception' do
+            expect do
+              client.create_property(class_name, 'member_name', 'string')
+            end.to raise_exception(OrientdbClient::CommandExecutionException, /OCommandExecutionException/)
+          end
+        end
+      end
+
+      context 'when not connected' do
+        it 'raises UnauthorizedError' do
+          expect do
+            client.create_property(class_name, 'member_name', 'string')
+          end.to raise_exception(OrientdbClient::UnauthorizedError)
+        end
+      end
+    end
+
+    describe '#alter_property' do
+      let(:class_name) { 'Member' }
+
+      context 'when connected' do
+        before(:each) do
+          client.connect(username: username, password: password, db: db)
+        end
+
+        context 'when class and property exist' do
+          before do
+            if (client.has_class?(class_name))
+              client.drop_class(class_name)
+            end
+            client.create_class(class_name) do |c|
+              c.property('member_name', 'string')
+            end
+          end
+
+          after do
+            if (client.has_class?(class_name))
+              client.drop_class(class_name)
+            end
+          end
+
+          it 'can change string to be notnull' do
+            client.alter_property(class_name, 'member_name', 'notnull', true)
+            expect(client.get_class(class_name)['properties']).to include(hash_including({
+              'name' => 'member_name',
+              'type' => 'STRING',
+              'mandatory' => false,
+              'readonly' => false,
+              'notNull' => true,
+              'min' => nil,
+              'max' => nil,
+              'regexp' => nil,
+              'collate' => 'default'
+            }))
+          end
+        end
+
+        context 'when class does not exist' do
+          before do
+            if (client.has_class?(class_name))
+              client.drop_class(class_name)
+            end
+          end
+
+          it 'raises exception' do
+            expect do
+              client.create_property(class_name, 'member_name', 'string')
+            end.to raise_exception(OrientdbClient::CommandExecutionException, /OCommandExecutionException/)
+          end
+        end
+
+        context 'when class exists but property does not' do
+          before do
+            if (client.has_class?(class_name))
+              client.drop_class(class_name)
+            end
+            client.create_class(class_name)
+          end
+
+          it 'raises exception' do
+            expect do
+              client.alter_property(class_name, 'member_name', 'notnull', true)
+            end.to raise_exception(OrientdbClient::CommandExecutionException, /OCommandExecutionException/)
+          end
+        end
+      end
+
+      context 'when not connected' do
+        it 'raises UnauthorizedError' do
+          expect do
+            client.create_property(class_name, 'member_name', 'string')
+          end.to raise_exception(OrientdbClient::UnauthorizedError)
+        end
+      end
+    end
+
     describe '#create_class' do
       let(:class_name) { 'Member' }
 
@@ -327,6 +489,25 @@ RSpec.describe OrientdbClient do
           expect do
             client.create_class(class_name, extends: 'VJk')
           end.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)
+        end
+
+        describe 'with block' do
+          it 'creates properties on the class' do
+            client.create_class(class_name, extends: 'V') do |c|
+              c.property('member_name', 'string', notnull: true)
+            end
+            expect(client.get_class(class_name)['properties']).to include(hash_including({
+              'name' => 'member_name',
+              'type' => 'STRING',
+              'mandatory' => false,
+              'readonly' => false,
+              'notNull' => true,
+              'min' => nil,
+              'max' => nil,
+              'regexp' => nil,
+              'collate' => 'default'
+            }))
+          end
         end
 
         context 'with existing class of that name' do

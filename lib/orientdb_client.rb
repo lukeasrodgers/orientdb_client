@@ -2,6 +2,7 @@ require "orientdb_client/version"
 require "orientdb_client/errors"
 require "orientdb_client/http_adapters"
 require "orientdb_client/http_adapters/typhoeus_adapter"
+require "orientdb_client/class_configurator"
 
 require 'oj'
 require 'cgi'
@@ -67,7 +68,19 @@ module OrientdbClient
     end
 
     def create_class(name, options = {})
-      @node.create_class(name, options)
+      response = @node.create_class(name, options)
+      if block_given?
+        yield ClassConfigurator.new(name, @node)
+      end
+      response
+    end
+
+    def create_property(class_name, property_name, type, options = {})
+      @node.create_property(class_name, property_name, type, options)
+    end
+
+    def alter_property(class_name, property_name, field, value)
+      @node.alter_property(class_name, property_name, field, value)
     end
 
     def get_class(name)
@@ -185,6 +198,17 @@ module OrientdbClient
       command("DROP CLASS #{name}")
     end
 
+    def create_property(class_name, property_name, type, options)
+      command("CREATE PROPERTY #{class_name}.#{property_name} #{type}")
+      options.each do |k, v|
+        alter_property(class_name, property_name, k, v)
+      end
+    end
+
+    def alter_property(class_name, property_name, field, value)
+      command("ALTER PROPERTY #{class_name}.#{property_name} #{field} #{value}")
+    end
+
     def query(sql, options)
       parse_response(query_unparsed(sql, options))['result']
     end
@@ -283,7 +307,7 @@ module OrientdbClient
       when /OConfigurationException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OCommandExecutionException/
-        raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
+        raise CommandExecutionException.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OSchemaException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OConcurrentModification/

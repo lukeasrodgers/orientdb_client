@@ -20,6 +20,7 @@ module OrientdbClient
 
   class ConflictError < ClientError; end
   class MVCCError < ConflictError; end
+  class DuplicateRecordError < ConflictError; end
 
   class NotFoundError < OrientdbError; end
 end

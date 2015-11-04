@@ -314,6 +314,8 @@ module OrientdbClient
         raise MVCCError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
       when /IllegalStateException/
         raise ServerError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+      when /ORecordDuplicate/
+        raise DuplicateRecordError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
       when /ODatabaseException/
         if odb_error_message.match(/already exists/)
           klass = ConflictError

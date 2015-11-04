@@ -589,19 +589,56 @@ RSpec.describe OrientdbClient do
           end
         end
       end
-    end
 
-    context 'without connection' do
-      it 'raises UnauthorizedError' do
-        expect { client.get_database(db) }.to raise_exception(OrientdbClient::UnauthorizedError)
-      end
+      context 'without connection' do
+        it 'raises UnauthorizedError' do
+          expect { client.get_database(db) }.to raise_exception(OrientdbClient::UnauthorizedError)
+        end
 
-      context 'with option auth data' do
-        it 'returns the database' do
-          expect(client.get_database(db, {username: username, password: password})).to be
+        context 'with option auth data' do
+          it 'returns the database' do
+            expect(client.get_database(db, {username: username, password: password})).to be
+          end
         end
       end
     end
+
+    describe 'duplicate edge creation' do
+      before do
+        client.connect(username: username, password: password, db: db)
+        if client.has_class?('Person')
+          client.command('delete vertex Person')
+          client.drop_class('Person')
+        end
+        if client.has_class?('Friend')
+          client.drop_class('Friend')
+        end
+      end
+
+      after do
+        client.command('delete vertex Person')
+        client.drop_class('Person')
+        client.drop_class('Friend')
+      end
+
+      it 'raises DuplicateRecordError' do
+        client.create_class('Person', extends: 'V')
+        client.create_class('Friend', extends: 'E')
+        client.command('create property Friend.out link Person')
+        client.command('create property Friend.in link Person')
+        client.command('create index FollowIdx on Friend (out,in) unique')
+        client.command('create property Person.age integer')
+        jim = client.command('insert into Person CONTENT ' + Oj.dump({'name' => 'jim'}))
+        bob = client.command('insert into Person CONTENT ' + Oj.dump({'name' => 'bob'}))
+        jim_rid = jim['result'][0]['@rid']
+        bob_rid = bob['result'][0]['@rid']
+        client.command("create edge Friend from #{jim_rid} to #{bob_rid}")
+        expect do
+          client.command("create edge Friend from #{jim_rid} to #{bob_rid}")
+        end.to raise_exception(OrientdbClient::DuplicateRecordError, /found duplicated key/)
+      end
+    end
+
   end
 
   # These specs will sometimes fail, not too much we can do about that, depends

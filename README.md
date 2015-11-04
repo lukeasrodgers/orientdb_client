@@ -10,8 +10,9 @@ Goals:
 
 Tested on:
 * 2.1.5
-* 2.0.6 - spec may fail due to Orientdb bug with deleting database (https://github.com/orientechnologies/orientdb/issues/3746)
+* 2.0.6 - specs may fail due to Orientdb bug with deleting database (https://github.com/orientechnologies/orientdb/issues/3746)
 * 2.0.4
+* 2.0.2
 
 ## Installation
 

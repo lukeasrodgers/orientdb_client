@@ -27,6 +27,7 @@ module OrientdbClient
   # ConflictError: you tried to create something that already exists
   class ConflictError < ClientError; end
   class DuplicateRecordError < ConflictError; end
+  class DistributedDuplicateRecordError < DuplicateRecordError; end
 
   class NotFoundError < OrientdbError; end
 

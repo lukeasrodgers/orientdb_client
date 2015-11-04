@@ -6,20 +6,20 @@ require "orientdb_client/class_configurator"
 
 require 'oj'
 require 'cgi'
+require 'logger'
 
 module OrientdbClient
   class << self
     def client(options = {})
       Client.new(options)
     end
-
-    attr_accessor :logger
   end
 
   DATABASE_TYPES = ['document', 'graph']
 
   class Client
     attr_reader :http_client
+    attr_accessor :logger
 
     def initialize(options)
       options = {
@@ -34,8 +34,9 @@ module OrientdbClient
                         HttpAdapters::TyphoeusAdapter
                       end
       @http_client = adapter_klass.new
-      @node = Node.new(host: @host, port: @port, http_client: @http_client)
+      @node = Node.new(host: @host, port: @port, http_client: @http_client, client: self)
       @connected = false
+      @logger = Logger.new(STDOUT)
       self
     end
 
@@ -137,10 +138,11 @@ module OrientdbClient
     attr_reader :database
     attr_writer :debug
 
-    def initialize(host:, port:, http_client: http_client)
+    def initialize(host:, port:, http_client: http_client, client: client)
       @host = host
       @port = port
       @http_client = http_client
+      @client = client
       @connected = false
       @database = nil
       @debug = false
@@ -250,7 +252,7 @@ module OrientdbClient
       response = @http_client.request(method, url, options)
       time = Time.now - t1
       r = handle_response(response)
-      OrientdbClient::logger.info("request (#{time}), #{response.response_code}: #{method} #{url}")
+      info("request (#{time}), #{response.response_code}: #{method} #{url}")
       r
     end
 
@@ -352,7 +354,9 @@ module OrientdbClient
       end
     end
 
+    def info *args
+      @client.logger.info(*args)
+    end
+
   end
 end
-
-OrientdbClient::logger = Logger.new(STDOUT)

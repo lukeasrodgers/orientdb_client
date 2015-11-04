@@ -3,7 +3,7 @@ require 'spec_helper'
 RSpec.describe OrientdbClient do
   let(:client) do
     c = OrientdbClient.client
-    OrientdbClient::logger.level = Logger::ERROR
+    c.logger.level = Logger::ERROR
     c
   end
   let(:username) { OrientdbClient::Test::Username }
@@ -646,7 +646,7 @@ RSpec.describe OrientdbClient do
   describe 'mvcc handling', type: :integration do
     let(:client) do
       c = OrientdbClient.client
-      OrientdbClient::logger.level = Logger::ERROR
+      c.logger.level = Logger::ERROR
       c
     end
     before do

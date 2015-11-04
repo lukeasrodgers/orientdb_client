@@ -327,7 +327,6 @@ RSpec.describe OrientdbClient do
               'notNull' => false,
               'min' => nil,
               'max' => nil,
-              'regexp' => nil,
               'collate' => 'default'
             }))
           end
@@ -342,7 +341,6 @@ RSpec.describe OrientdbClient do
               'notNull' => true,
               'min' => '4',
               'max' => '10',
-              'regexp' => nil,
               'collate' => 'default'
             }))
           end
@@ -412,7 +410,6 @@ RSpec.describe OrientdbClient do
               'notNull' => true,
               'min' => nil,
               'max' => nil,
-              'regexp' => nil,
               'collate' => 'default'
             }))
           end
@@ -504,7 +501,6 @@ RSpec.describe OrientdbClient do
               'notNull' => true,
               'min' => nil,
               'max' => nil,
-              'regexp' => nil,
               'collate' => 'default'
             }))
           end

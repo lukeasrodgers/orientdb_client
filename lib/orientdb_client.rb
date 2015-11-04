@@ -7,6 +7,7 @@ require "orientdb_client/class_configurator"
 require 'oj'
 require 'cgi'
 require 'logger'
+require 'rainbow'
 
 module OrientdbClient
   class << self
@@ -368,8 +369,9 @@ module OrientdbClient
       end
     end
 
-    def info *args
-      @client.logger.info(*args)
+    def info(message)
+      wrapped_message = "#{Rainbow('OrientdbClient:').yellow} #{message}"
+      @client.logger.info(wrapped_message)
     end
 
   end

@@ -218,6 +218,8 @@ module OrientdbClient
     def query_unparsed(sql, options)
       limit = limit_string(options)
       request(:get, "query/#{@database}/sql/#{CGI::escape(sql)}#{limit}")
+    rescue NegativeArraySizeException
+      raise NotFoundError
     end
 
     def command(sql)
@@ -337,6 +339,8 @@ module OrientdbClient
     rescue => e
       if (response.body.match(/Database.*already exists/))
         raise ConflictError.new(e.message, response.response_code, response.body)
+      elsif (response.body.match(/NegativeArraySizeException/))
+        raise NegativeArraySizeException.new(e.message, response.response_code, response.body)
       else
         raise OrientdbError.new("Could not parse Orientdb server error", response.response_code, response.body)
       end
@@ -349,6 +353,8 @@ module OrientdbClient
     rescue => e
       if (response.body.match(/Database.*already exists/))
         raise ConflictError.new(e.message, response.response_code, response.body)
+      elsif (response.body.match(/NegativeArraySizeException/))
+        raise NegativeArraySizeException.new(e.message, response.response_code, response.body)
       else
         raise OrientdbError.new("Could not parse Orientdb server error", response.response_code, response.body)
       end

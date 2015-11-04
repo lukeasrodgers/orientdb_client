@@ -23,4 +23,6 @@ module OrientdbClient
   class DuplicateRecordError < ConflictError; end
 
   class NotFoundError < OrientdbError; end
+
+  class NegativeArraySizeException < OrientdbError; end
 end

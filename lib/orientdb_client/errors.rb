@@ -17,6 +17,7 @@ module OrientdbClient
   class TransactionException < ServerError; end
   class DistributedTransactionException < TransactionException; end
   class MVCCError < ServerError; end
+  class DistributedRecordLockedException < TransactionException; end
 
   # ClientError: you did something wrong
   class ClientError < OrientdbError; end

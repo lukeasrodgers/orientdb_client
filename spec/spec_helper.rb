@@ -25,6 +25,19 @@ require 'webmock/rspec'
 WebMock.disable_net_connect!(:allow_localhost => true)
 
 $db = ENV['ORIENTDB_TEST_DATABASENAME'] || OrientdbClient::Test::DatabaseName
+begin
+  r = `ps aux | grep -E "server.*orient.*distributed=true" | grep -v grep | wc -l`;
+  $distributed_mode = r.strip.chomp.to_i == 1
+rescue
+  puts "Could not determine Orientdb distributed/standalone mode, assuming standalone"
+  $distributed_mode = false
+ensure
+  if $distributed_mode
+    # Orientdb distributed mode does not support db deletion.
+    # https://github.com/orientechnologies/orientdb/issues/3746
+    puts "Orientdb is running in distributed mode; skipping some tests."
+  end
+end
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

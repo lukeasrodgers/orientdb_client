@@ -336,6 +336,8 @@ module OrientdbClient
           klass = ServerError
         end
         raise klass.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+      when /ODistributedRecordLockedException/
+        raise DistributedRecordLockedException.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
       end
     end
 
@@ -343,7 +345,7 @@ module OrientdbClient
       body = response.body
       json = Oj.load(body)
       # odb > 2.1 (?) errors are in JSON format
-      matches = json['errors'].first['content'].match(/\A([^:]+):\s?(.+)/m)
+      matches = json['errors'].first['content'].match(/\A([^:]+):?\s?(.*)/m)
       [matches[1], matches[2]]
     rescue => e
       if (response.body.match(/Database.*already exists/))

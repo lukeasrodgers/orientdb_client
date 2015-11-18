@@ -316,24 +316,24 @@ module OrientdbClient
       when /OSchemaException|OIndexException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OConcurrentModification/
-        raise MVCCError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+        raise MVCCError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /IllegalStateException/
-        raise ServerError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+        raise ServerError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /ORecordDuplicate/
-        raise DuplicateRecordError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+        raise DuplicateRecordError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /ODistributedException/
         if odb_error_message.match(/ORecordDuplicate/)
-          raise DistributedDuplicateRecordError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+          raise DistributedDuplicateRecordError.new("#{odb_error_class}: #{odb_error_message}", code, body)
         else
-          raise DistributedException.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+          raise DistributedException.new("#{odb_error_class}: #{odb_error_message}", code, body)
         end
       when /OTransactionException/
         if odb_error_message.match(/ORecordDuplicate/)
-          raise DistributedDuplicateRecordError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+          raise DistributedDuplicateRecordError.new("#{odb_error_class}: #{odb_error_message}", code, body)
         elsif odb_error_message.match(/distributed/)
-          raise DistributedTransactionException.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+          raise DistributedTransactionException.new("#{odb_error_class}: #{odb_error_message}", code, body)
         else
-          raise TransactionException.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+          raise TransactionException.new("#{odb_error_class}: #{odb_error_message}", code, body)
         end
       when /ODatabaseException/
         if odb_error_message.match(/already exists/)
@@ -341,11 +341,11 @@ module OrientdbClient
         else
           klass = ServerError
         end
-        raise klass.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+        raise klass.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /ODistributedRecordLockedException/
-        raise DistributedRecordLockedException.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+        raise DistributedRecordLockedException.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OSerializationException/
-        raise SerializationException.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+        raise SerializationException.new("#{odb_error_class}: #{odb_error_message}", code, body)
       end
     end
 

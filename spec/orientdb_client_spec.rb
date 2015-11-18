@@ -376,6 +376,7 @@ RSpec.describe OrientdbClient do
           end
         end
 
+        # This spec sometimes fails on Orientdb 2.1.X
         context 'when class does not exist' do
           it 'raises exception' do
             expect do

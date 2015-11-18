@@ -1,5 +1,7 @@
 # OrientdbClient
 
+[![Build Status](https://travis-ci.org/lukeasrodgers/orientdb_client.svg)](https://travis-ci.org/lukeasrodgers/orientdb_client)
+
 Ruby client for Orientdb. Probably not quite ready for production yet.
 Inspired by https://github.com/veny/orientdb4r
 
@@ -13,6 +15,8 @@ Tested on:
 * 2.0.6 - specs may fail due to Orientdb bug with deleting database (https://github.com/orientechnologies/orientdb/issues/3746)
 * 2.0.4
 * 2.0.2
+
+CI tests with Travis currently only run non-integration tests (i.e. they don't actually hit an Orientdb server).
 
 ## Installation
 

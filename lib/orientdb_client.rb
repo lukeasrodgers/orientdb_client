@@ -313,7 +313,7 @@ module OrientdbClient
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OCommandExecutionException/
         raise CommandExecutionException.new("#{odb_error_class}: #{odb_error_message}", code, body)
-      when /OSchemaException/
+      when /OSchemaException|OIndexException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OConcurrentModification/
         raise MVCCError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)

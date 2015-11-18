@@ -238,6 +238,14 @@ RSpec.describe OrientdbClient do
           end
         end
 
+        context 'creating index for property that does not exist' do
+          it 'raises a ClientError' do
+            expect do
+              client.command('create index UserIdx on OUser (user_id) unique')
+            end.to raise_exception(OrientdbClient::ClientError)
+          end
+        end
+
         context 'with invalid query' do
           it 'returns result' do
             expect { client.command('select * crumb') }.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)

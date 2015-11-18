@@ -13,16 +13,16 @@ RSpec.describe OrientdbClient do
   let(:db) { OrientdbClient::Test::DatabaseName }
   let(:temp_db_name) { "#{OrientdbClient::Test::DatabaseName}_temp" }
 
-  after(:each) do
-    if client.connected?
-      client.disconnect
-    end
-    if client.database_exists?(temp_db_name)
-      client.delete_database(temp_db_name, username: valid_username, password: valid_password)
-    end
-  end
-
   describe 'integration specs', type: :integration do
+    after(:each) do
+      if client.connected?
+        client.disconnect
+      end
+      if client.database_exists?(temp_db_name)
+        client.delete_database(temp_db_name, username: valid_username, password: valid_password)
+      end
+    end
+
     describe '#connect' do
       subject { client.connect(username: username, password: password, db: db) }
 

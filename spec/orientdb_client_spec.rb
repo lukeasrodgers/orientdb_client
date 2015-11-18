@@ -91,7 +91,7 @@ RSpec.describe OrientdbClient do
         before do
           client.connect(username: username, password: password, db: db)
         end
-        
+
         context 'with valid database parameters' do
           it 'creates a database' do
             client.create_database(temp_db_name, 'plocal', 'document')
@@ -128,55 +128,57 @@ RSpec.describe OrientdbClient do
     end
 
     describe '#delete_database' do
-      before(:each) do
-        if !client.database_exists?(temp_db_name)
-          client.create_database(temp_db_name, 'plocal', 'document', username: valid_username, password: valid_password)
-        end
-      end
-
-      context 'without existing connection' do
-        context 'with valid authentication options' do
-          it 'deletes the database' do
-            client.delete_database(temp_db_name, username: username, password: password)
-            expect(client.database_exists?(temp_db_name)).to be false
+      if !$distributed_mode
+        before(:each) do
+          if !client.database_exists?(temp_db_name)
+            client.create_database(temp_db_name, 'plocal', 'document', username: valid_username, password: valid_password)
           end
         end
 
-        context 'with invalid authentication options' do
-          it 'raises UnauthorizedError' do
-            expect do
-              client.delete_database(temp_db_name, username: 'foo', password: 'bar')
-            end.to raise_exception(OrientdbClient::UnauthorizedError)
+        context 'without existing connection' do
+          context 'with valid authentication options' do
+            it 'deletes the database' do
+              client.delete_database(temp_db_name, username: username, password: password)
+              expect(client.database_exists?(temp_db_name)).to be false
+            end
           end
 
-          it 'does not delete the database' do
-            begin
-              client.delete_database(temp_db_name, username: 'foo', password: 'bar')
-            rescue
-            ensure
-              expect(client.database_exists?(temp_db_name)).to be true
+          context 'with invalid authentication options' do
+            it 'raises UnauthorizedError' do
+              expect do
+                client.delete_database(temp_db_name, username: 'foo', password: 'bar')
+              end.to raise_exception(OrientdbClient::UnauthorizedError)
+            end
+
+            it 'does not delete the database' do
+              begin
+                client.delete_database(temp_db_name, username: 'foo', password: 'bar')
+              rescue
+              ensure
+                expect(client.database_exists?(temp_db_name)).to be true
+              end
             end
           end
         end
-      end
 
-      context 'with existing connection' do
-        before do
-          client.connect(username: username, password: password, db: db)
-        end
-        
-        context 'with valid database parameters' do
-          it 'deletes the database' do
-            client.delete_database(temp_db_name)
-            expect(client.database_exists?(temp_db_name)).to be false
+        context 'with existing connection' do
+          before do
+            client.connect(username: username, password: password, db: db)
           end
-        end
 
-        context 'with no matching database' do
-          it 'raises a ClientError' do
-            expect do
-              client.delete_database(temp_db_name + 'baz')
-            end.to raise_exception(OrientdbClient::ClientError, /OConfigurationException/)
+          context 'with valid database parameters' do
+            it 'deletes the database' do
+              client.delete_database(temp_db_name)
+              expect(client.database_exists?(temp_db_name)).to be false
+            end
+          end
+
+          context 'with no matching database' do
+            it 'raises a ClientError' do
+              expect do
+                client.delete_database(temp_db_name + 'baz')
+              end.to raise_exception(OrientdbClient::ClientError, /OConfigurationException/)
+            end
           end
         end
       end
@@ -228,9 +230,25 @@ RSpec.describe OrientdbClient do
           end
         end
 
+        context 'with invalid JSON' do
+          it 'raises SerializationException' do
+            expect do
+              client.command('insert into OUser CONTENT ' + Oj.dump({a:1}))
+            end.to raise_exception(OrientdbClient::SerializationException)
+          end
+        end
+
+        context 'creating index for property that does not exist' do
+          it 'raises a ClientError' do
+            expect do
+              client.command('create index UserIdx on OUser (user_id) unique')
+            end.to raise_exception(OrientdbClient::ClientError)
+          end
+        end
+
         context 'with invalid query' do
           it 'returns result' do
-            expect { client.query('select * crumb') }.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)
+            expect { client.command('select * crumb') }.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)
           end
         end
       end
@@ -358,6 +376,7 @@ RSpec.describe OrientdbClient do
           end
         end
 
+        # This spec sometimes fails on Orientdb 2.1.X
         context 'when class does not exist' do
           it 'raises exception' do
             expect do
@@ -635,6 +654,32 @@ RSpec.describe OrientdbClient do
       end
     end
 
+    describe 'duplicate record creation violating index constraint' do
+      before do
+        client.connect(username: username, password: password, db: db)
+        if client.has_class?('Person')
+          client.command('delete vertex Person')
+          client.drop_class('Person')
+        end
+      end
+      after do
+        client.command('delete vertex Person')
+        client.drop_class('Person')
+      end
+
+      it 'raises DuplicateRecordError' do
+        error_klass = $distributed_mode ? OrientdbClient::DistributedDuplicateRecordError : OrientdbClient:: DuplicateRecordError
+        client.create_class('Person', extends: 'V') do |c|
+          c.property('user_id', 'integer')
+        end
+        client.command('create index PersonIdx on Person (user_id) unique')
+        client.command('insert into Person CONTENT ' + Oj.dump({'user_id' => 1}))
+        expect do
+          client.command('insert into Person CONTENT ' + Oj.dump({'user_id' => 1}))
+        end.to raise_exception(error_klass)
+      end
+    end
+
   end
 
   # These specs will sometimes fail, not too much we can do about that, depends
@@ -674,7 +719,8 @@ RSpec.describe OrientdbClient do
       jim_rid = jim['result'][0]['@rid']
       bob_rid = bob['result'][0]['@rid']
       thrs = []
-      expect do 
+      err = nil
+      begin
         thrs << Thread.new do
           100.times do
             client.command("create edge Friend from #{jim_rid} to #{bob_rid}")
@@ -688,7 +734,16 @@ RSpec.describe OrientdbClient do
           end
         end
         thrs.each { |t| t.join }
-      end.to raise_exception(OrientdbClient::MVCCError, /OConcurrentModificationException/)
+      rescue => e
+        err = e
+      ensure
+        if $distributed_mode
+          correct_error_raised = err.is_a?(OrientdbClient::MVCCError) || err.is_a?(OrientdbClient::DistributedRecordLockedException)
+        else
+          correct_error_raised = err.is_a?(OrientdbClient::MVCCError)
+        end
+        expect(correct_error_raised).to be true
+      end
     end
   end
 

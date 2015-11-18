@@ -17,12 +17,16 @@ module OrientdbClient
   class TransactionException < ServerError; end
   class DistributedTransactionException < TransactionException; end
   class MVCCError < ServerError; end
+  class DistributedRecordLockedException < TransactionException; end
+  # Generic DistributedException, generally a more specific error is preferable.
+  class DistributedException < ServerError; end
 
   # ClientError: you did something wrong
   class ClientError < OrientdbError; end
   class UnauthorizedError < ClientError; end
   class IllegalArgumentException < ClientError; end
   class CommandExecutionException < ClientError; end
+  class SerializationException < ClientError; end
 
   # ConflictError: you tried to create something that already exists
   class ConflictError < ClientError; end

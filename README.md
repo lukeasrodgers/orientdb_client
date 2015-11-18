@@ -55,7 +55,7 @@ Orientdb::logger = MyLogger.new
 # use a different HttpAdapter
 require 'orientdb_client'
 require 'orientdb_client/http_adapters/curb_adapter'
-client = OrientdbClient.cient(adapter: 'CurbAdapter')
+client = OrientdbClient.client(adapter: 'CurbAdapter')
 ```
 
 ## HTTP Adapters

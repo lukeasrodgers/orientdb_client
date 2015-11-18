@@ -356,12 +356,14 @@ module OrientdbClient
       matches = json['errors'].first['content'].match(/\A([^:]+):?\s?(.*)/m)
       [matches[1], matches[2]]
     rescue => e
-      if (response.body.match(/Database.*already exists/))
-        raise ConflictError.new(e.message, response.response_code, response.body)
-      elsif (response.body.match(/NegativeArraySizeException/))
-        raise NegativeArraySizeException.new(e.message, response.response_code, response.body)
+      code = response.response_code
+      body = response.body
+      if (body.match(/Database.*already exists/))
+        raise ConflictError.new(e.message, code, body)
+      elsif (body.match(/NegativeArraySizeException/))
+        raise NegativeArraySizeException.new(e.message, code, body)
       else
-        raise OrientdbError.new("Could not parse Orientdb server error", response.response_code, response.body)
+        raise OrientdbError.new("Could not parse Orientdb server error: #{code}, #{body}")
       end
     end
 

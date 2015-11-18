@@ -24,6 +24,7 @@ module OrientdbClient
   class UnauthorizedError < ClientError; end
   class IllegalArgumentException < ClientError; end
   class CommandExecutionException < ClientError; end
+  class SerializationException < ClientError; end
 
   # ConflictError: you tried to create something that already exists
   class ConflictError < ClientError; end

@@ -230,6 +230,14 @@ RSpec.describe OrientdbClient do
           end
         end
 
+        context 'with invalid JSON' do
+          it 'raises SerializationException' do
+            expect do
+              client.command('insert into OUser CONTENT ' + Oj.dump({a:1}))
+            end.to raise_exception(OrientdbClient::SerializationException)
+          end
+        end
+
         context 'with invalid query' do
           it 'returns result' do
             expect { client.command('select * crumb') }.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)

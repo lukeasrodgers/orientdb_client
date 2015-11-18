@@ -338,6 +338,8 @@ module OrientdbClient
         raise klass.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
       when /ODistributedRecordLockedException/
         raise DistributedRecordLockedException.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+      when /OSerializationException/
+        raise SerializationException.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
       end
     end
 

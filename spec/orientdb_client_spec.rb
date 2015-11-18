@@ -653,6 +653,32 @@ RSpec.describe OrientdbClient do
       end
     end
 
+    describe 'duplicate record creation violating index constraint' do
+      before do
+        client.connect(username: username, password: password, db: db)
+        if client.has_class?('Person')
+          client.command('delete vertex Person')
+          client.drop_class('Person')
+        end
+      end
+      after do
+        client.command('delete vertex Person')
+        client.drop_class('Person')
+      end
+
+      it 'raises DuplicateRecordError' do
+        error_klass = $distributed_mode ? OrientdbClient::DistributedDuplicateRecordError : OrientdbClient:: DuplicateRecordError
+        client.create_class('Person', extends: 'V') do |c|
+          c.property('user_id', 'integer')
+        end
+        client.command('create index PersonIdx on Person (user_id) unique')
+        client.command('insert into Person CONTENT ' + Oj.dump({'user_id' => 1}))
+        expect do
+          client.command('insert into Person CONTENT ' + Oj.dump({'user_id' => 1}))
+        end.to raise_exception(error_klass)
+      end
+    end
+
   end
 
   # These specs will sometimes fail, not too much we can do about that, depends

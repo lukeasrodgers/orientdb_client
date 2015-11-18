@@ -321,6 +321,12 @@ module OrientdbClient
         raise ServerError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
       when /ORecordDuplicate/
         raise DuplicateRecordError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+      when /ODistributedException/
+        if odb_error_message.match(/ORecordDuplicate/)
+          raise DistributedDuplicateRecordError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+        else
+          raise DistributedException.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)
+        end
       when /OTransactionException/
         if odb_error_message.match(/ORecordDuplicate/)
           raise DistributedDuplicateRecordError.new("#{odb_error_class}: #{odb_error_message}", response.response_code, response.body)

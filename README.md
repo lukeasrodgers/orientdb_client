@@ -44,19 +44,38 @@ my_client.query('select * from V')
 # create database
 my_client.create_database('new_db', 'plocal', 'graph')
 
-# use a different logger
-class MyLogger
-  def info(message)
-    puts "my message: #{message}"
-  end
-end
-Orientdb::logger = MyLogger.new
-
 # use a different HttpAdapter
 require 'orientdb_client'
 require 'orientdb_client/http_adapters/curb_adapter'
 client = OrientdbClient.client(adapter: 'CurbAdapter')
 ```
+
+## Logging/instrumentation
+
+OrientdbClient does no logging by default, but will use ActiveSupport::Notifications
+if you `require 'orientdb_client/instrumentation/log_subscriber'`.
+
+If you are using Rails, this should *just work*.
+
+If you aren't, you'll need to manually specify the logger, like so:
+
+
+```ruby
+# activesupport version 3
+OrientdbClient::Instrumentation::LogSubscriber.logger = Logger.new(STDOUT)
+
+# activesupport version 4
+ActiveSupport::LogSubscriber.logger = Logger.new(STDOUT)
+```
+
+The right-hand side of the assignment here can be an instance of whatever
+logger class you want.
+
+The following events are instrumented:
+
+* `request.orientdb_client`: most of this is corresponds to time spent in HTTP
+* `process_response.orientdb_client`: most of this will correspond to JSON parsing
+and error response code/message handling.
 
 ## HTTP Adapters
 

@@ -1,0 +1,9 @@
+source "https://rubygems.org"
+
+gem 'activesupport', '~> 4.0', require: false
+
+group :test do
+  gem 'curb', '~> 0.8'
+end
+
+gemspec :path => "../"

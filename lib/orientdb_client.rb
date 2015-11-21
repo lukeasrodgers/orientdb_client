@@ -1,13 +1,13 @@
+require 'forwardable'
 require "orientdb_client/version"
 require "orientdb_client/errors"
 require "orientdb_client/http_adapters"
 require "orientdb_client/http_adapters/typhoeus_adapter"
 require "orientdb_client/class_configurator"
+require "orientdb_client/instrumenters/noop"
 
 require 'oj'
 require 'cgi'
-require 'logger'
-require 'rainbow'
 
 module OrientdbClient
   class << self
@@ -20,7 +20,8 @@ module OrientdbClient
 
   class Client
     attr_reader :http_client
-    attr_accessor :logger
+    extend Forwardable
+    def_delegators :@instrumenter, :instrument
 
     def initialize(options)
       options = {
@@ -34,10 +35,10 @@ module OrientdbClient
                       else
                         HttpAdapters::TyphoeusAdapter
                       end
+      @instrumenter = options[:instrumenter] || Instrumenters::Noop
       @http_client = adapter_klass.new
       @node = Node.new(host: @host, port: @port, http_client: @http_client, client: self)
       @connected = false
-      @logger = Logger.new(STDOUT)
       self
     end
 
@@ -251,12 +252,17 @@ module OrientdbClient
 
     def request(method, path, options = {})
       url = build_url(path)
-      t1 = Time.now
-      response = @http_client.request(method, url, options)
-      time = Time.now - t1
-      r = handle_response(response)
-      info("request (#{time}), #{response.response_code}: #{method} #{url}")
-      r
+      request_instrumentation_hash = {method: method, url: url, options: options}
+      raw_response = safe_instrument('request.orientdb_client', request_instrumentation_hash) do |payload|
+        response = @http_client.request(method, url, options)
+        payload[:response_code] = response.response_code
+        response
+      end
+      response_instrumentation_hash = request_instrumentation_hash.merge(response_code: raw_response.response_code)
+      processed_response = safe_instrument('process_response.orientdb_client', response_instrumentation_hash) do |payload|
+        handle_response(raw_response)
+      end
+      processed_response
     end
 
     def build_url(path)
@@ -381,10 +387,19 @@ module OrientdbClient
       end
     end
 
-    def info(message)
-      wrapped_message = "#{Rainbow('OrientdbClient:').yellow} #{message}"
-      @client.logger.info(wrapped_message)
+    # Ensures instrumentation will complete even if exception is raised.
+    def safe_instrument(event_name, args)
+      err = nil
+      result = @client.instrument(event_name, args) do |payload|
+        begin
+          yield payload
+        rescue => e
+          payload[:error] = e.class.to_s
+          err = e
+        end
+      end
+      raise err if err
+      result
     end
-
   end
 end

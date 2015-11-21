@@ -20,7 +20,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "typhoeus", "~> 0.6"
   spec.add_dependency "oj", "~> 2.0"
-  spec.add_dependency "rainbow", "> 1.99"
 
   spec.add_development_dependency "rake"
   spec.add_development_dependency "pry"

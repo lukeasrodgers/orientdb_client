@@ -1,11 +1,8 @@
 require 'spec_helper'
+require 'orientdb_client/instrumenters/memory'
 
 RSpec.describe OrientdbClient do
-  let(:client) do
-    c = OrientdbClient.client
-    c.logger.level = Logger::ERROR
-    c
-  end
+  let(:client) { OrientdbClient.client }
   let(:username) { OrientdbClient::Test::Username }
   let(:valid_username) { OrientdbClient::Test::Username }
   let(:password) { OrientdbClient::Test::Password }
@@ -680,16 +677,69 @@ RSpec.describe OrientdbClient do
       end
     end
 
+    describe 'instrumentation' do
+      let(:memory_instrumenter) { OrientdbClient::Instrumenters::Memory.new }
+      let(:client) { OrientdbClient.client(instrumenter: memory_instrumenter) }
+
+      before do
+        client.connect(username: username, password: password, db: db)
+      end
+
+      it 'instruments requests' do
+        client.list_databases
+        request_events = memory_instrumenter.events.select {|e| e.name == 'request.orientdb_client' }
+        expect(request_events.size).to eq(2)
+
+        connect_request_event = request_events.first
+        expect(connect_request_event.payload[:url]).to match(/connect/)
+        expect(connect_request_event.payload[:response_code]).to eq(204)
+
+        list_event = request_events.last
+        expect(list_event.payload[:url]).to match(/listDatabases/)
+        expect(list_event.payload[:response_code]).to eq(200)
+      end
+
+      it 'works when the request fails' do
+        allow(client.http_client).to receive(:request).and_call_original
+        allow(client.http_client).to receive(:request).with(:get, "http://localhost:2480/class/orientdb_client_rb_test/OUser", anything) { raise 'err' }
+
+        begin
+          client.get_class('OUser')
+        rescue
+        ensure
+          expect(memory_instrumenter.events.last.payload[:error]).to eq('RuntimeError')
+        end
+      end
+
+      it 'instruments response handling' do
+        client.list_databases
+        response_events = memory_instrumenter.events.select {|e| e.name == 'process_response.orientdb_client' }
+        expect(response_events.size).to eq(2)
+
+        connect_response_event = response_events.first
+        expect(connect_response_event.payload[:url]).to match(/connect/)
+        expect(connect_response_event.payload[:response_code]).to eq(204)
+
+        list_response_event = response_events.last
+        expect(list_response_event.payload[:url]).to match(/listDatabases/)
+        expect(list_response_event.payload[:response_code]).to eq(200)
+      end
+
+      it 'works when the response handling fails' do
+        begin
+          client.command('insert into OUser CONTENT ' + Oj.dump({a:1}))
+        rescue
+        ensure
+          expect(memory_instrumenter.events.last.payload[:error]).to eq('OrientdbClient::SerializationException')
+        end
+      end
+    end
   end
 
   # These specs will sometimes fail, not too much we can do about that, depends
   # on timing/threading in ruby and odb
   describe 'mvcc handling', type: :integration do
-    let(:client) do
-      c = OrientdbClient.client
-      c.logger.level = Logger::ERROR
-      c
-    end
+    let(:client) { OrientdbClient.client }
     before do
       client.connect(username: username, password: password, db: db)
       if client.has_class?('Person')

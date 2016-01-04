@@ -20,6 +20,15 @@ RSpec.shared_examples 'http adapter' do
     end
   end
 
+  describe 'timeout handling' do
+    let(:url) { 'http://localhost:2480/listDatabases' }
+
+    it 'raises a Timeout exception' do
+      stub_request(:get, url).to_timeout
+      expect { adapter.request(:get, url) }.to raise_exception(OrientdbClient::Timeout)
+    end
+  end
+
   describe '#request' do
     describe 'GET' do
       let(:url) { 'http://localhost:2480/listDatabases' }

@@ -116,10 +116,12 @@ To run all the tests:
 
 1. install orientdb locally
 2. if you used a different username or password than `root`, then you'll have to specify those values via environment variables, e.g.:
+
     ```
     export ORIENTDB_TEST_USERNAME=your_username
     export ORIENTDB_TEST_PASSWORD=your_password
     ```
+
 3. run `bundle exec rake db:test:create` to create the test database
 4. run `bundle exec rspec` to run the tests
 

@@ -20,6 +20,7 @@ module OrientdbClient
   class DistributedRecordLockedException < TransactionException; end
   # Generic DistributedException, generally a more specific error is preferable.
   class DistributedException < ServerError; end
+  class Timeout < ServerError; end
 
   # ClientError: you did something wrong
   class ClientError < OrientdbError; end

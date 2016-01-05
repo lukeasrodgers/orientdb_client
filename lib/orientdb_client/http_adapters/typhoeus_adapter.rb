@@ -6,7 +6,12 @@ module OrientdbClient
 
       def request(method, url, options = {})
         req = prepare_request(method, url, options)
-        run_request(req)
+        response = run_request(req)
+        if response.timed_out?
+          timed_out!(method, url)
+        else
+          return response
+        end
       end
 
       private
@@ -16,6 +21,9 @@ module OrientdbClient
           userpwd: authentication_string(options),
           method: method
         }.merge(options)
+        if timeout = @timeout || options[:timeout]
+          options[:timeout] = timeout
+        end
         Typhoeus::Request.new(url, options)
       end
 

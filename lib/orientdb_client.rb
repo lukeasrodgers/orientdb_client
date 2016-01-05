@@ -36,7 +36,7 @@ module OrientdbClient
                         HttpAdapters::TyphoeusAdapter
                       end
       @instrumenter = options[:instrumenter] || Instrumenters::Noop
-      @http_client = adapter_klass.new
+      @http_client = adapter_klass.new(timeout: options[:timeout])
       @node = Node.new(host: @host, port: @port, http_client: @http_client, client: self)
       @connected = false
       self

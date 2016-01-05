@@ -105,9 +105,23 @@ curb       0.060000   0.010000   0.070000 (  0.331764)
 
 Launch pry session with the gem: `rake console`, in pry use `reload!` to reload all gem files.
 
-Run tests: `rake db:test:create` (consult `test.rb` for information on customizing auth credentials via env variables).
-
 Turn on/off rudimentary debug mode with `client.debug = true/false`.
+
+### Running the tests
+
+Currently, we don't run integration tests in CI due to the hackyness of setting running orientdb on Travis, and also because
+some of the integration tests fail non-deterministically (especially the ones involving multiple threads).
+
+To run all the tests:
+
+1. install orientdb locally
+2. if you used a different username or password than `root`, then you'll have to specify those values via environment variables, e.g.:
+```
+export ORIENTDB_TEST_USERNAME=your_username
+export ORIENTDB_TEST_PASSWORD=your_password
+```
+3. run `bundle exec rake db:test:create` to create the test database
+4. run `bundle exec rspec` to run the tests
 
 ## Contributing
 

@@ -48,6 +48,9 @@ my_client.create_database('new_db', 'plocal', 'graph')
 require 'orientdb_client'
 require 'orientdb_client/http_adapters/curb_adapter'
 client = OrientdbClient.client(adapter: 'CurbAdapter')
+
+# initialize client with an HTTP request timeout of 30s
+client = OrientdbClient.client(host: 'localhost', timeout: 30)
 ```
 
 ## Logging/instrumentation
@@ -55,7 +58,13 @@ client = OrientdbClient.client(adapter: 'CurbAdapter')
 OrientdbClient does no logging by default, but will use ActiveSupport::Notifications
 if you `require 'orientdb_client/instrumentation/log_subscriber'`.
 
-If you are using Rails, this should *just work*.
+If you are using Rails, this should *just work*. You will have to initialize your client instance
+with the option `instrumenter: ActiveSupport::Notifications`, e.g.:
+
+
+```ruby
+my_client = OrientdbClient.client(host: 'localhost', instrumenter: ActiveSupport::Notifications)
+```
 
 If you aren't, you'll need to manually specify the logger, like so:
 

@@ -2,6 +2,8 @@
 
 ## Master
 
+## 0.0.4
+
 * Added support for timeouts.
 
 ## 0.0.3

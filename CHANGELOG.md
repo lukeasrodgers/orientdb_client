@@ -2,6 +2,8 @@
 
 ## Master
 
+* Added support for timeouts.
+
 ## 0.0.3
 
 * Added `CHANGELOG.md`

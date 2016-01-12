@@ -7,7 +7,9 @@ module OrientdbClient
       def request(method, url, options = {})
         req = prepare_request(method, url, options)
         response = run_request(req)
-        if response.timed_out?
+        if response.return_message == "Couldn't connect to server".freeze
+          raise ConnectionError
+        elsif response.timed_out?
           timed_out!(method, url)
         else
           return response

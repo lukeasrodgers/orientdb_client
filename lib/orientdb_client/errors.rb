@@ -37,4 +37,10 @@ module OrientdbClient
   class NotFoundError < OrientdbError; end
 
   class NegativeArraySizeException < OrientdbError; end
+
+  # Some adapters, e.g. Curb, have many different errors they may raise, and we don't
+  # want to have to worry about rescuing each individual one (e.g. FTPError), so if
+  # we get an exception from an adapter for which we don't have a clear mapping to a native
+  # OrientdbClient error, just wrap it in HttpAdapterError.
+  class HttpAdapterError < OrientdbError; end
 end

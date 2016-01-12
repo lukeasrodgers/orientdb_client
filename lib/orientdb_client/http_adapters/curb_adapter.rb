@@ -10,6 +10,12 @@ module OrientdbClient
         req
       rescue Curl::Err::TimeoutError
         timed_out!(method, url)
+      rescue Curl::Err::ConnectionFailedError, Curl::Err::HostResolutionError
+        raise ConnectionError
+      rescue Curl::Err::MalformedURLError
+        raise ClientError
+      rescue Curl::Err::CurlError
+        raise HttpAdapterError
       end
 
       private

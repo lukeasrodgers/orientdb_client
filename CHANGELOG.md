@@ -2,6 +2,10 @@
 
 ## Master
 
+* Differentiate between Typhoeus adapter timeouts and connection failures.
+* Prevent Curb errors from bubbling up to gem user; convert some of them to native
+OrientdbClient errors.
+
 ## 0.0.4
 
 * Added support for timeouts.

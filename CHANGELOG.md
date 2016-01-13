@@ -2,6 +2,8 @@
 
 ## Master
 
+## 0.0.5
+
 * Differentiate between Typhoeus adapter timeouts and connection failures.
 * Prevent Curb errors from bubbling up to gem user; convert some of them to native
 OrientdbClient errors.

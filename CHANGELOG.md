@@ -2,6 +2,8 @@
 
 ## Master
 
+* Correctly handle error message for database creation conflict exceptions.
+
 ## 0.0.5
 
 * Differentiate between Typhoeus adapter timeouts and connection failures.

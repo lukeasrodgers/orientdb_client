@@ -365,7 +365,7 @@ module OrientdbClient
       code = response.response_code
       body = response.body
       if (body.match(/Database.*already exists/))
-        raise ConflictError.new(e.message, code, body)
+        raise ConflictError.new('Database already exists', code, body)
       elsif (body.match(/NegativeArraySizeException/))
         raise NegativeArraySizeException.new(e.message, code, body)
       else
@@ -379,7 +379,7 @@ module OrientdbClient
       [matches[1], matches[2]]
     rescue => e
       if (response.body.match(/Database.*already exists/))
-        raise ConflictError.new(e.message, response.response_code, response.body)
+        raise ConflictError.new('Database already exists', response.response_code, response.body)
       elsif (response.body.match(/NegativeArraySizeException/))
         raise NegativeArraySizeException.new(e.message, response.response_code, response.body)
       else

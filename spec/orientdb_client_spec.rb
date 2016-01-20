@@ -97,12 +97,22 @@ RSpec.describe OrientdbClient do
         end
 
         context 'with existing database' do
-          it 'creates a database' do
+          it 'raises a ConflictError' do
             client.create_database(temp_db_name, 'plocal', 'document')
             expect(client.database_exists?(temp_db_name)).to be true
             expect do
               client.create_database(temp_db_name, 'plocal', 'document')
             end.to raise_exception(OrientdbClient::ConflictError)
+          end
+
+          it 'extracts the right conflict error message' do
+            client.create_database(temp_db_name, 'plocal', 'document')
+            expect(client.database_exists?(temp_db_name)).to be true
+            begin
+              client.create_database(temp_db_name, 'plocal', 'document')
+            rescue => e
+              expect(e.message).to eql('Database already exists')
+            end
           end
         end
 

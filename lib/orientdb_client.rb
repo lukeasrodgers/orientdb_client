@@ -352,6 +352,10 @@ module OrientdbClient
         raise DistributedRecordLockedException.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OSerializationException/
         raise SerializationException.new("#{odb_error_class}: #{odb_error_message}", code, body)
+      when /NegativeArraySizeException/
+        raise NegativeArraySizeException.new("#{odb_error_class}: #{odb_error_message}", code, body)
+      else
+        raise ServerError.new("Unparseable Orientdb server error", code, body)
       end
     end
 

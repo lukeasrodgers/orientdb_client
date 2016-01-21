@@ -344,14 +344,20 @@ module OrientdbClient
       when /ODatabaseException/
         if odb_error_message.match(/already exists/)
           klass = ConflictError
+          message = 'Database already exists'
         else
           klass = ServerError
+          message = "#{odb_error_class}: #{odb_error_message}"
         end
-        raise klass.new("#{odb_error_class}: #{odb_error_message}", code, body)
+        raise klass.new(message, code, body)
       when /ODistributedRecordLockedException/
         raise DistributedRecordLockedException.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OSerializationException/
         raise SerializationException.new("#{odb_error_class}: #{odb_error_message}", code, body)
+      when /NegativeArraySizeException/
+        raise NegativeArraySizeException.new("#{odb_error_class}: #{odb_error_message}", code, body)
+      else
+        raise ServerError.new("Unparseable Orientdb server error", code, body)
       end
     end
 

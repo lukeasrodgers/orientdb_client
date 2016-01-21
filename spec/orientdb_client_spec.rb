@@ -661,6 +661,42 @@ RSpec.describe OrientdbClient do
       end
     end
 
+    describe 'handling `NegativeArraySizeException`s' do
+      before do
+        client.connect(username: username, password: password, db: db)
+        if client.has_class?('Person')
+          client.command('delete vertex Person')
+          client.drop_class('Person')
+        end
+        if client.has_class?('Friend')
+          client.drop_class('Friend')
+        end
+      end
+
+      after do
+        client.command('delete vertex Person')
+        client.drop_class('Person')
+        client.drop_class('Friend')
+      end
+
+      it 'translates this exception into a NotFoundError' do
+        client.create_class('Person', extends: 'V')
+        client.create_class('Friend', extends: 'E')
+        client.command('create property Friend.out link Person')
+        client.command('create property Friend.in link Person')
+        client.command('create index FollowIdx on Friend (out,in) unique')
+        client.command('create property Person.user_id integer')
+        jim = client.command('insert into Person CONTENT ' + Oj.dump({'name' => 'jim', 'user_id' => 1}))
+        bob = client.command('insert into Person CONTENT ' + Oj.dump({'name' => 'bob', 'user_id' => 2}))
+        jim_rid = jim['result'][0]['@rid']
+        bob_rid = bob['result'][0]['@rid']
+        client.command("create edge Friend from #{jim_rid} to #{bob_rid}")
+        expect do
+          client.query("select in('Friend')[660-669].user_id,user_id from Person where user_id in [2]", {:limit=>1})
+        end.to raise_exception(OrientdbClient::NotFoundError)
+      end
+    end
+
     describe 'duplicate record creation violating index constraint' do
       before do
         client.connect(username: username, password: password, db: db)

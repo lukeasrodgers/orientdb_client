@@ -2,6 +2,8 @@
 
 ## Master
 
+## 0.0.6
+
 * Correctly handle error message for database creation conflict exceptions.
 * Ensure `NegativeArraySizeException`s are correctly converted to `NotFoundError`s across all supported versions of Orientdb.
 * Ensure "database already exists" errors messages are consistent across all supported versions of Orientdb.

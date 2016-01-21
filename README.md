@@ -2,7 +2,8 @@
 
 [![Build Status](https://travis-ci.org/lukeasrodgers/orientdb_client.svg)](https://travis-ci.org/lukeasrodgers/orientdb_client)
 
-Ruby client for Orientdb. Probably not quite ready for production yet.
+While not yet at version 1.0, the client has been in use in a production environment for several months, working fine, with some minor improvements and bugfixes along the way.
+
 Inspired by https://github.com/veny/orientdb4r
 
 Goals:

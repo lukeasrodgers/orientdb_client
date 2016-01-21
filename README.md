@@ -13,11 +13,13 @@ Goals:
 
 Tested on:
 * 2.1.5
+* 2.1.4
 * 2.0.6 - specs may fail due to Orientdb bug with deleting database (https://github.com/orientechnologies/orientdb/issues/3746)
 * 2.0.4
 * 2.0.2
 
-CI tests with Travis currently only run non-integration tests (i.e. they don't actually hit an Orientdb server).
+CI tests with Travis currently only run non-integration tests (i.e. they don't actually hit an Orientdb server). This means that the "tested on versions x.x.x" is *manual testing*.
+That is to say, this testing process is error-prone, so you should run the tests yourself with whatever version of Orientdb you are using.
 
 ## Installation
 

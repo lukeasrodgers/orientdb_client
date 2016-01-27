@@ -12,6 +12,7 @@ Goals:
 * fine-grained handling of Orientdb errors, via rich set of ruby exceptions
 
 Tested on:
+* 2.1.9
 * 2.1.5
 * 2.1.4
 * 2.0.6 - specs may fail due to Orientdb bug with deleting database (https://github.com/orientechnologies/orientdb/issues/3746)

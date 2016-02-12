@@ -12,6 +12,7 @@ Goals:
 * fine-grained handling of Orientdb errors, via rich set of ruby exceptions
 
 Tested on:
+* 2.1.10
 * 2.1.9
 * 2.1.5
 * 2.1.4

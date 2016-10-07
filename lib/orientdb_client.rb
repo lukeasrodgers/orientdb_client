@@ -140,7 +140,7 @@ module OrientdbClient
     attr_reader :database
     attr_writer :debug
 
-    def initialize(host:, port:, http_client: http_client, client: client)
+    def initialize(host:, port:, http_client:, client:)
       @host = host
       @port = port
       @http_client = http_client

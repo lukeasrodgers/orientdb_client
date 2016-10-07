@@ -2,6 +2,7 @@ language: ruby
 rvm:
   - 2.1
   - 2.2
+  - 2.3.1
 script: bundle exec rspec --tag ~'type:integration'
 matrix:
   include:
@@ -9,3 +10,5 @@ matrix:
       gemfile: Gemfiles/Gemfile.as3.2
     - rvm: 2.2
       gemfile: Gemfiles/Gemfile.as4.0
+    - rvm: 2.3.1
+      gemfile: Gemfiles/Gemfile.as5.0

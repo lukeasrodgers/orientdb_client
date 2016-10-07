@@ -253,13 +253,13 @@ module OrientdbClient
     def request(method, path, options = {})
       url = build_url(path)
       request_instrumentation_hash = {method: method, url: url, options: options}
-      raw_response = safe_instrument('request.orientdb_client', request_instrumentation_hash) do |payload|
+      raw_response = @client.instrument('request.orientdb_client', request_instrumentation_hash) do |payload|
         response = @http_client.request(method, url, options)
         payload[:response_code] = response.response_code
         response
       end
       response_instrumentation_hash = request_instrumentation_hash.merge(response_code: raw_response.response_code)
-      processed_response = safe_instrument('process_response.orientdb_client', response_instrumentation_hash) do |payload|
+      processed_response = @client.instrument('process_response.orientdb_client', response_instrumentation_hash) do |payload|
         handle_response(raw_response)
       end
       processed_response
@@ -391,21 +391,6 @@ module OrientdbClient
       else
         raise OrientdbError.new("Could not parse Orientdb server error", response.response_code, response.body)
       end
-    end
-
-    # Ensures instrumentation will complete even if exception is raised.
-    def safe_instrument(event_name, args)
-      err = nil
-      result = @client.instrument(event_name, args) do |payload|
-        begin
-          yield payload
-        rescue => e
-          payload[:error] = e.class.to_s
-          err = e
-        end
-      end
-      raise err if err
-      result
     end
   end
 end

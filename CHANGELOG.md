@@ -2,6 +2,12 @@
 
 ## Master
 
+## 0.0.7
+
+* Test ActiveSupport 5 and ruby 2.3.1.
+* Delete redundant `safely_instrument` code -- this is already done by ActiveSupport. This will be a breaking change for code that expects errors in the ASN payload to be in the `error` key.
+They will now be in the `exception` key, as an array.
+
 ## 0.0.6
 
 * Correctly handle error message for database creation conflict exceptions.

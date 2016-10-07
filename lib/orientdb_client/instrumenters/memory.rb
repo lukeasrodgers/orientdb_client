@@ -12,14 +12,16 @@ module OrientdbClient
       end
 
       def instrument(name, payload = {})
-        result = if block_given?
-          yield payload
-        else
-          nil
+        result = nil
+        begin
+          result = yield payload
+        rescue Exception => e
+          payload[:exception] = [e.class.name, e.message]
+          raise e
+        ensure
+          @events << Event.new(name, payload, result)
+          result
         end
-
-        @events << Event.new(name, payload, result)
-        result
       end
     end
   end

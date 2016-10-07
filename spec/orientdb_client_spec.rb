@@ -753,7 +753,7 @@ RSpec.describe OrientdbClient do
           client.get_class('OUser')
         rescue
         ensure
-          expect(memory_instrumenter.events.last.payload[:error]).to eq('RuntimeError')
+          expect(memory_instrumenter.events.last.payload[:exception]).to eq(['RuntimeError', 'err'])
         end
       end
 
@@ -776,7 +776,8 @@ RSpec.describe OrientdbClient do
           client.command('insert into OUser CONTENT ' + Oj.dump({a:1}))
         rescue
         ensure
-          expect(memory_instrumenter.events.last.payload[:error]).to eq('OrientdbClient::SerializationException')
+          exception_klass = memory_instrumenter.events.last.payload[:exception].first
+          expect(exception_klass).to eq('OrientdbClient::SerializationException')
         end
       end
     end

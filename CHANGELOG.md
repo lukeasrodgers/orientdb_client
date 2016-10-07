@@ -2,6 +2,8 @@
 
 ## Master
 
+* Fix circular argument warning.
+
 ## 0.0.7
 
 * Test ActiveSupport 5 and ruby 2.3.1.

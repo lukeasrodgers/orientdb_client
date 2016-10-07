@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["lukeasrodgers@gmail.com"]
   spec.summary       = %q{Orientdb ruby client}
   spec.description   = %q{Orientdb ruby client aiming to be simple, fast, and provide good integration with Orientdb error messages.}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/lukeasrodgers/orientdb_client"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

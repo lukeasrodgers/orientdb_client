@@ -39,6 +39,11 @@ ensure
   end
 end
 
+# Require support files
+Dir[File.expand_path('../support/*.rb', __FILE__)].each do |f|
+  require "support/#{File.basename(f, ".rb")}"
+end
+
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
@@ -67,6 +72,8 @@ RSpec.configure do |config|
   config.profile_examples = 10
   config.order = :random
   Kernel.srand config.seed
+
+  config.include SpecHelper
 
 # The settings below are suggested to provide a good initial experience
 # with RSpec, but feel free to customize to your heart's content.

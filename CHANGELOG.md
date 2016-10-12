@@ -3,6 +3,7 @@
 ## Master
 
 * Fix circular argument warning.
+* Add Skylight.io normalizer. b814880
 
 ## 0.0.7
 

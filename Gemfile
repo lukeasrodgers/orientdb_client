@@ -6,4 +6,5 @@ gemspec
 group :test do
   gem 'activesupport', '~> 4.0', require: false
   gem 'curb', '~> 0.8'
+  gem 'skylight', '~> 0.10'
 end

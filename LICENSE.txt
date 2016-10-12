@@ -20,3 +20,20 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+## Other Licenses
+
+### Ruby on Rails
+
+Copyright (c) 2005-2016 David Heinemeier Hansson
+
+Released under the MIT License.
+
+Original source at https://github.com/rails/rails.
+
+### Skylight
+
+Copyright (c) 2013-2016 Tilde, Inc.
+
+Original source at https://github.com/skylightio/skylight-ruby

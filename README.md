@@ -12,7 +12,7 @@ Goals:
 * fine-grained handling of Orientdb errors, via rich set of ruby exceptions
 
 Tested on:
-* 2.2
+* 2.2.10
 * 2.1.10
 * 2.1.9
 * 2.1.5
@@ -91,6 +91,20 @@ The following events are instrumented:
 * `request.orientdb_client`: most of this is corresponds to time spent in HTTP
 * `process_response.orientdb_client`: most of this will correspond to JSON parsing
 and error response code/message handling.
+
+### Skylight.io integration
+
+If you use Skylight for application monitoring, you can include an OrientDB normalizer so that Skylight will group
+your OrientDB queries with other db (sql, redis) queries and visually separate them from the rest of your rails code.
+
+The best way I've found to do this is including this in your `config/application.rb`:
+
+```ruby
+config.before_initialize do
+  # This will run before initializers for all railties, which is where Skylight registers its normalizers.
+  require 'orientdb_client/integration/skylight_normalizer'
+end
+```
 
 ## HTTP Adapters
 

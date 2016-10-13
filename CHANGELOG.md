@@ -4,6 +4,7 @@
 
 * Fix circular argument warning.
 * Add Skylight.io normalizer. b814880
+* Support for OrientDB 2.2. 1ba0c34
 
 ## 0.0.7
 

@@ -206,7 +206,7 @@ RSpec.describe OrientdbClient do
 
         context 'with invalid query' do
           it 'raises ClientError' do
-            expect { client.query('select * crumb') }.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)
+            expect { client.query('select * crumb') }.to raise_exception(OrientdbClient::ParsingError)
           end
         end
         
@@ -255,7 +255,7 @@ RSpec.describe OrientdbClient do
 
         context 'with invalid query' do
           it 'returns result' do
-            expect { client.command('select * crumb') }.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)
+            expect { client.command('select * crumb') }.to raise_exception(OrientdbClient::ParsingError)
           end
         end
       end
@@ -511,7 +511,7 @@ RSpec.describe OrientdbClient do
         it 'raises exception on creation of classes that extend nothing' do
           expect do
             client.create_class(class_name, extends: 'VJk')
-          end.to raise_exception(OrientdbClient::ClientError, /OCommandSQLParsingException/)
+          end.to raise_exception(OrientdbClient::ParsingError)
         end
 
         describe 'with block' do

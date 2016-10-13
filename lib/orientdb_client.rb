@@ -276,6 +276,8 @@ module OrientdbClient
         raise ConnectionError.new("No server at #{@host}:#{@port}", 0, nil)
       when 200, 201, 204
         return response
+      when 400
+        translate_error(response)
       when 401
         raise UnauthorizedError.new('Unauthorized', response.response_code, response.body)
       when 404
@@ -307,8 +309,8 @@ module OrientdbClient
       code = response.response_code
       body = response.body
       case odb_error_class
-      when /OCommandSQLParsingException/
-        raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
+      when /OCommandSQLParsingException/, "Error parsing query", "Error on parsing command"
+        raise ParsingError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OQueryParsingException/
         raise ClientError.new("#{odb_error_class}: #{odb_error_message}", code, body)
       when /OCommandExecutorNotFoundException/

@@ -2,6 +2,10 @@
 
 ## Master
 
+## 0.0.9
+
+* Fixes for orientdb 2.2.30 compatibility
+
 ## 0.0.8
 
 * Fix circular argument warning.

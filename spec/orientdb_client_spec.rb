@@ -385,6 +385,12 @@ RSpec.describe OrientdbClient do
 
         # This spec sometimes fails on Orientdb 2.1.X
         context 'when class does not exist' do
+          before do
+            if (client.has_class?(class_name))
+              client.drop_class(class_name)
+            end
+          end
+
           it 'raises exception' do
             expect do
               client.create_property(class_name, 'member_name', 'string')

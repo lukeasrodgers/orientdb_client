@@ -359,7 +359,7 @@ module OrientdbClient
       when /NegativeArraySizeException/
         raise NegativeArraySizeException.new("#{odb_error_class}: #{odb_error_message}", code, body)
       else
-        raise ServerError.new("Unparseable Orientdb server error", code, body)
+        error_handling_fallback(code, body)
       end
     end
 
@@ -372,12 +372,16 @@ module OrientdbClient
     rescue => e
       code = response.response_code
       body = response.body
+      error_handling_fallback(code, body, e)
+    end
+
+    def error_handling_fallback(code, body, e = nil)
       if (body.match(/Database.*already exists/))
         raise ConflictError.new('Database already exists', code, body)
       elsif (body.match(/NegativeArraySizeException/))
         raise NegativeArraySizeException.new(e.message, code, body)
       else
-        raise OrientdbError.new("Could not parse Orientdb server error: #{code}, #{body}")
+        raise ServerError.new("Unparseable Orientdb server error", code, body)
       end
     end
 
